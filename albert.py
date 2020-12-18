@@ -1,20 +1,22 @@
 import torch
-torch.cuda.current_device()
 import torch.nn as nn
 from torch.utils.data import DataLoader, Dataset
-from transformers import AlbertTokenizer,AlbertModel,AlbertConfig,AlbertForPreTraining, AdamW, get_linear_schedule_with_warmup
+from transformers import AlbertTokenizer, AlbertModel, AlbertConfig, AlbertForPreTraining, AdamW, \
+    get_linear_schedule_with_warmup, AlbertForSequenceClassification, AutoModel, AutoTokenizer
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix, classification_report
 from collections import defaultdict
 import pandas as pd
 import random
+import matplotlib as plt
 
-RANDOM_SEED = 777
-BATCH_SIZE = 4
+RANDOM_SEED = 778
+BATCH_SIZE = 1
 MAX_LEN = 150
-EPOCHS = 4
+EPOCHS = 30
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+torch.cuda.current_device()
 
 
 def set_seed(seed):
@@ -73,17 +75,19 @@ def create_data_loader(df, tokenizer, max_len, batch_size):
 
 
 class MyModel(nn.Module):
-    def __init__(self, freeze_bert=True, n_classes=2):
+    def __init__(self, freeze_bert=False, n_classes=2):
         super(MyModel, self).__init__()
         albert_xxlarge_configuration = AlbertConfig(output_hidden_states=True, output_attentions=True)
-        self.model = AlbertModel.from_pretrained(pretrained_model_name_or_path=MODEL_PATH,
-                                                     config=albert_xxlarge_configuration)
+        # self.model = AlbertModel.from_pretrained(pretrained_model_name_or_path=MODEL_PATH)
+        self.model = AutoModel.from_pretrained(pretrained_model_name_or_path=MODEL_PATH)
         if freeze_bert:
             for p in self.model.parameters():
                 p.requires_grad = False
 
-        self.drop = nn.Dropout(p=0.3)
-        self.out = nn.Linear(self.model.config.hidden_size, n_classes)
+        self.drop = nn.Dropout(p=0.1)
+        self.classifier = nn.Linear(self.model.config.hidden_size, n_classes)
+        self.softmax = nn.Softmax(dim=1)
+
 
     def forward(self, input_ids, attention_mask):
         outputs = self.model(
@@ -93,69 +97,97 @@ class MyModel(nn.Module):
         pooled_output = outputs[1]
 
         output = self.drop(pooled_output)
-        return self.out(output)
+        output = self.classifier(output)
+        return self.softmax(output)
+
 
 
 def train_epoch(
-  model,
-  data_loader,
-  loss_fn,
-  optimizer,
-  device,
-  scheduler,
-  n_examples
+    model,
+    data_loader,
+    loss_fn,
+    optimizer,
+    device,
+    scheduler,
+    n_examples
 ):
-  model = model.train()
-  losses = []
-  correct_predictions = 0
-  for d in data_loader:
-    input_ids = d["input_ids"].to(device)
-    attention_mask = d["attention_mask"].to(device)
-    targets = d["targets"].to(device)
-    outputs = model(
-      input_ids=input_ids,
-      attention_mask=attention_mask
-    )
-    _, preds = torch.max(outputs, dim=1)
-    loss = loss_fn(outputs, targets)
-    correct_predictions += torch.sum(preds == targets)
-    losses.append(loss.item())
-    loss.backward()
-    nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
-    optimizer.step()
-    scheduler.step()
-    optimizer.zero_grad()
-  return correct_predictions.double() / n_examples, np.mean(losses)
+    model = model.train()
+    losses = []
+    correct_predictions = 0
+    for d in data_loader:
+        input_ids = d["input_ids"].to(device)
+        attention_mask = d["attention_mask"].to(device)
+        targets = d["targets"].to(device)
+        outputs = model(
+          input_ids=input_ids,
+          attention_mask=attention_mask
+        )
+        _, preds = torch.max(outputs, dim=1)
+        loss = loss_fn(outputs, targets)
+        correct_predictions += torch.sum(preds == targets)
+        losses.append(loss.item())
+        loss.backward()
+        nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+        optimizer.step()
+        scheduler.step()
+        optimizer.zero_grad()
+    return correct_predictions.double() / n_examples, np.mean(losses)
 
 def eval_model(model, data_loader, loss_fn, device, n_examples):
-  model = model.eval()
-  losses = []
-  correct_predictions = 0
-  with torch.no_grad():
-    for d in data_loader:
-      input_ids = d["input_ids"].to(device)
-      attention_mask = d["attention_mask"].to(device)
-      targets = d["targets"].to(device)
-      outputs = model(
-        input_ids=input_ids,
-        attention_mask=attention_mask
-      )
-      _, preds = torch.max(outputs, dim=1)
-      loss = loss_fn(outputs, targets)
-      correct_predictions += torch.sum(preds == targets)
-      losses.append(loss.item())
-  return correct_predictions.double() / n_examples, np.mean(losses)
+    model = model.eval()
+    losses = []
+    correct_predictions = 0
+    with torch.no_grad():
+        for d in data_loader:
+            input_ids = d["input_ids"].to(device)
+            attention_mask = d["attention_mask"].to(device)
+            targets = d["targets"].to(device)
+            outputs = model(
+            input_ids=input_ids,
+            attention_mask=attention_mask
+            )
+            _, preds = torch.max(outputs, dim=1)
+            loss = loss_fn(outputs, targets)
+            correct_predictions += torch.sum(preds == targets)
+            losses.append(loss.item())
+    return correct_predictions.double() / n_examples, np.mean(losses)
+
+def get_predictions(model, data_loader):
+    model = model.eval()
+    review_texts = []
+    predictions = []
+    prediction_probs = []
+    real_values = []
+    with torch.no_grad():
+        for d in data_loader:
+            texts = d["review_text"]
+            input_ids = d["input_ids"].to(device)
+            attention_mask = d["attention_mask"].to(device)
+            targets = d["targets"].to(device)
+            outputs = model(
+            input_ids=input_ids,
+            attention_mask=attention_mask
+            )
+            _, preds = torch.max(outputs, dim=1)
+            review_texts.extend(texts)
+            predictions.extend(preds)
+            prediction_probs.extend(outputs)
+            real_values.extend(targets)
+            predictions = torch.stack(predictions).cpu()
+            prediction_probs = torch.stack(prediction_probs).cpu()
+            real_values = torch.stack(real_values).cpu()
+    return review_texts, predictions, prediction_probs, real_values
 
 if __name__ == '__main__':
 
     set_seed(RANDOM_SEED)
 
-    MODEL_PATH = r'D:\\aboutCoding\\python_exams\\pythonProject2\\albert-xxlarge-v2/'
-    tokenizer = AlbertTokenizer.from_pretrained(MODEL_PATH, output_hidden_states=True, return_dict=True)
+    MODEL_PATH = 'bert-base-cased'
+    tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH, output_hidden_states=True, return_dict=True)
 
     df = pd.read_csv("./datas/task1/train/train.csv")
     df = df[['text', 'is_humor']]
-
+    class_names = ['is_humor', 'not_humor']
     df_train, df_test = train_test_split(
         df,
         test_size=0.1,
@@ -173,16 +205,17 @@ if __name__ == '__main__':
     data = next(iter(train_data_loader))
 
     model = MyModel(n_classes=2)
+    # model.load_state_dict(torch.load('./best_model_state.bin'))
     model = model.to(device)
     input_ids = data['input_ids'].to(device)
     attention_mask = data['attention_mask'].to(device)
 
-    optimizer = AdamW(model.parameters(), lr=2e-5, correct_bias=False)
+    optimizer = AdamW(model.parameters(), lr=5e-5, correct_bias=False)
     total_steps = len(train_data_loader) * EPOCHS
 
     scheduler = get_linear_schedule_with_warmup(
         optimizer,
-        num_warmup_steps=300,
+        num_warmup_steps=0,
         num_training_steps=total_steps
     )
 
@@ -222,8 +255,20 @@ if __name__ == '__main__':
 
 
 
+    test_acc, _ = eval_model(
+        model,
+        test_data_loader,
+        loss_fn,
+        device,
+        len(df_test)
+    )
+    test_acc.item()
+    print(test_acc.item())
 
+    y_review_texts, y_pred, y_pred_probs, y_test = get_predictions(
+        model,
+        test_data_loader
+    )
 
-
-
+    print(classification_report(y_test, y_pred, target_names=class_names))
 
