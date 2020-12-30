@@ -12,11 +12,11 @@ import random
 import matplotlib as plt
 
 RANDOM_SEED = 778
-BATCH_SIZE = 1
+BATCH_SIZE = 8
 MAX_LEN = 150
 EPOCHS = 30
-device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 torch.cuda.current_device()
+device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
 
 def set_seed(seed):
@@ -78,13 +78,14 @@ class MyModel(nn.Module):
     def __init__(self, freeze_bert=False, n_classes=2):
         super(MyModel, self).__init__()
         albert_xxlarge_configuration = AlbertConfig(output_hidden_states=True, output_attentions=True)
-        # self.model = AlbertModel.from_pretrained(pretrained_model_name_or_path=MODEL_PATH)
-        self.model = AutoModel.from_pretrained(pretrained_model_name_or_path=MODEL_PATH)
+        self.model = AlbertModel.from_pretrained(pretrained_model_name_or_path=MODEL_PATH,
+                                                 config=albert_xxlarge_configuration)
+        # self.model = AutoModel.from_pretrained(pretrained_model_name_or_path=MODEL_PATH)
         if freeze_bert:
             for p in self.model.parameters():
                 p.requires_grad = False
 
-        self.drop = nn.Dropout(p=0.1)
+        self.drop = nn.Dropout(p=0.2)
         self.classifier = nn.Linear(self.model.config.hidden_size, n_classes)
         self.softmax = nn.Softmax(dim=1)
 
@@ -165,24 +166,24 @@ def get_predictions(model, data_loader):
             attention_mask = d["attention_mask"].to(device)
             targets = d["targets"].to(device)
             outputs = model(
-            input_ids=input_ids,
-            attention_mask=attention_mask
+                input_ids=input_ids,
+                attention_mask=attention_mask
             )
             _, preds = torch.max(outputs, dim=1)
             review_texts.extend(texts)
             predictions.extend(preds)
             prediction_probs.extend(outputs)
             real_values.extend(targets)
-            predictions = torch.stack(predictions).cpu()
-            prediction_probs = torch.stack(prediction_probs).cpu()
-            real_values = torch.stack(real_values).cpu()
+    predictions = torch.stack(predictions).cpu()
+    prediction_probs = torch.stack(prediction_probs).cpu()
+    real_values = torch.stack(real_values).cpu()
     return review_texts, predictions, prediction_probs, real_values
 
 if __name__ == '__main__':
 
     set_seed(RANDOM_SEED)
 
-    MODEL_PATH = 'bert-base-cased'
+    MODEL_PATH = 'albert-xxlarge-v2'
     tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH, output_hidden_states=True, return_dict=True)
 
     df = pd.read_csv("./datas/task1/train/train.csv")
@@ -206,11 +207,15 @@ if __name__ == '__main__':
 
     model = MyModel(n_classes=2)
     # model.load_state_dict(torch.load('./best_model_state.bin'))
+    
+    if torch.cuda.device_count()>1:
+      model=nn.DataParallel(model,device_ids=[0,1,2])
+
     model = model.to(device)
     input_ids = data['input_ids'].to(device)
     attention_mask = data['attention_mask'].to(device)
 
-    optimizer = AdamW(model.parameters(), lr=5e-5, correct_bias=False)
+    optimizer = AdamW(model.parameters(), lr=2e-5, correct_bias=False)
     total_steps = len(train_data_loader) * EPOCHS
 
     scheduler = get_linear_schedule_with_warmup(
