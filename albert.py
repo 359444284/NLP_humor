@@ -167,9 +167,9 @@ def train_epoch(
           attention_mask=attention_mask
         )
         _, preds1 = torch.max(output1, dim=1)
-        mes1 = mean_squared_error(targets[:,1].cpu().numpy(),output2.cpu().numpy())
+        mes1 = mean_squared_error(targets[:,1].cpu(),output2.cpu())
         _, preds3 = torch.max(output3, dim=1)
-        mes2 = mean_squared_error(targets[:,3].cpu().numpy(),output2.cpu().numpy())
+        mes2 = mean_squared_error(targets[:,3].cpu(),output2.cpu())
         
         
         loss1 = loss_fn_CE(output1, targets[:,0].type(torch.LongTensor))
@@ -215,9 +215,9 @@ def eval_model(model, data_loader, loss_fn_CE, loss_fn_MSE, device, n_examples):
             )
          
             _, preds1 = torch.max(output1, dim=1)
-            mes1 = mean_squared_error(targets[:,1].cpu().numpy(),output2.cpu().numpy())
+            mes1 = mean_squared_error(targets[:,1].cpu(),output2.cpu())
             _, preds3 = torch.max(output3, dim=1)
-            mes2 = mean_squared_error(targets[:,3].cpu().numpy(),output2.cpu().numpy())
+            mes2 = mean_squared_error(targets[:,3].cpu(),output2.cpu())
 
             loss1 = loss_fn_CE(output1, targets[:,0].type(torch.LongTensor))
             loss4 = loss_fn_MSE(output4, targets[:,3])
@@ -367,7 +367,7 @@ if __name__ == '__main__':
     )
 
     print(classification_report(y_test[:,0], y_pred[:,0], target_names=class_names_1))
-    print(mean_squared_error(y_test[:,1].cpu().numpy(), y_pred[:,1].cpu().numpy()))
+    print(mean_squared_error(y_test[:,1].cpu(), y_pred[:,1].cpu()))
     print(classification_report(y_test[:,2], y_pred[:,2], target_names=class_names_2))
-    print(mean_squared_error(y_test[:,3].cpu().numpy(), y_pred[:,3].cpu().numpy()))
+    print(mean_squared_error(y_test[:,3].cpu(), y_pred[:,3].cpu()))
 
