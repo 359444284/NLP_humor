@@ -268,7 +268,7 @@ def get_predictions(model, data_loader):
     real_values = torch.stack(real_values).cpu()
     return review_texts, predictions, prediction_probs, real_values
 
-class MultiTaskLossWrapper():
+class MultiTaskLossWrapper(nn.Module):
     def __init__(self, task_num):
         super(MultiTaskLossWrapper, self).__init__()
         self.task_num = task_num
