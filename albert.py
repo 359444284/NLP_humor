@@ -6,7 +6,7 @@ from transformers import AlbertTokenizer, AlbertModel, AlbertConfig, AlbertForPr
     RobertaConfig, RobertaModel, RobertaTokenizer
 import numpy as np
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import confusion_matrix, classification_report, roc_curve, auc, mean_squared_error
+from sklearn.metrics import confusion_matrix, classification_report, roc_curve, auc
 from collections import defaultdict
 import pandas as pd
 import random
@@ -167,9 +167,9 @@ def train_epoch(
           attention_mask=attention_mask
         )
         _, preds1 = torch.max(output1, dim=1)
-        mes1 = mean_squared_error(targets[:,1].detach().cpu(),output2.detach().cpu())
+        mes1 = (output2 - targets[:,1]).norm(2).pow(2)
         _, preds3 = torch.max(output3, dim=1)
-        mes2 = mean_squared_error(targets[:,3].detach().cpu(),output2.detach().cpu())
+        mes2 = (output4 - targets[:,3]).norm(2).pow(2)
         
         
         loss1 = loss_fn_CE(output1, targets[:,0].type(torch.LongTensor))
@@ -215,9 +215,9 @@ def eval_model(model, data_loader, loss_fn_CE, loss_fn_MSE, device, n_examples):
             )
          
             _, preds1 = torch.max(output1, dim=1)
-            mes1 = mean_squared_error(targets[:,1].detach().cpu(),output2.detach().cpu())
+            mes1 = (output2 - targets[:,1]).norm(2).pow(2)
             _, preds3 = torch.max(output3, dim=1)
-            mes2 = mean_squared_error(targets[:,3].detach().cpu(),output2.detach().cpu())
+            mes2 = (output4 - targets[:,3]).norm(2).pow(2)
 
             loss1 = loss_fn_CE(output1, targets[:,0].type(torch.LongTensor))
             loss4 = loss_fn_MSE(output4, targets[:,3])
@@ -367,7 +367,7 @@ if __name__ == '__main__':
     )
 
     print(classification_report(y_test[:,0], y_pred[:,0], target_names=class_names_1))
-    print(mean_squared_error(y_test[:,1].detach().cpu(), y_pred[:,1].detach().cpu()))
+    print((y_test[:,1] - y_pred[:,1]).norm(2).pow(2))
     print(classification_report(y_test[:,2], y_pred[:,2], target_names=class_names_2))
-    print(mean_squared_error(y_test[:,3].detach().cpu(), y_pred[:,3].detach().cpu()))
+    print((y_test[:,3] - y_pred[:,3]).norm(2).pow(2))
 
