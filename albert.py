@@ -100,7 +100,7 @@ class MyModel(nn.Module):
         # humor_rating
         self.tower_2 = nn.Sequential(
             nn.Dropout(p=0.8),
-            nn.Linear(self.model.config.hidden_size, 1).clamp(0, 5)
+            nn.Linear(self.model.config.hidden_size, 1)
         )
         
         # humor_controversy
@@ -113,7 +113,7 @@ class MyModel(nn.Module):
         # offense_rating
         self.tower_4 = nn.Sequential(
             nn.Dropout(p=0.8),
-            nn.Linear(self.model.config.hidden_size, 1).clamp(0, 5)
+            nn.Linear(self.model.config.hidden_size, 1)
         )
 
 
@@ -138,9 +138,9 @@ class MyModel(nn.Module):
 
 
         output1 = self.tower_1(pooled_output)
-        output2 = self.tower_2(pooled_output)
+        output2 = self.tower_2(pooled_output).clamp(0, 5)
         output3 = self.tower_3(pooled_output)
-        output4 = self.tower_4(pooled_output)
+        output4 = self.tower_4(pooled_output).clamp(0, 5)
         return output1, output2, output3, output4
 
 def train_epoch(
