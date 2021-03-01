@@ -55,7 +55,7 @@ class GPReviewDataset(Dataset):
             'review_text': review,
             'input_ids': encoding['input_ids'].flatten(),
             'attention_mask': encoding['attention_mask'].flatten(),
-            'targets': torch.tensor(target, dtype=torch.long)
+            'targets': torch.tensor(target, dtype=torch.float)
         }
 
 def create_data_loader(df, tokenizer, max_len, batch_size):
@@ -172,12 +172,12 @@ def train_epoch(
         mes2 = mean_squared_error(targets[:,3],output2)
         
         
-        loss1 = loss_fn_CE(output1, targets[:,0])
+        loss1 = loss_fn_CE(output1, targets[:,0].type(torch.LongTensor))
         loss4 = loss_fn_MSE(output4, targets[:,3])
         loss = loss1 + loss4
         if torch.sum(preds1 == 1) != 0:
             loss2 = loss_fn_MSE(output2[preds1 == 1], targets[:,1][preds1 == 1])
-            loss3 = loss_fn_CE(output3[preds1 == 1], targets[:,2][preds1 == 1])
+            loss3 = loss_fn_CE(output3[preds1 == 1], targets[:,2][preds1 == 1].type(torch.LongTensor))
             loss = loss2 + loss3
             loss = loss/4
         else:
@@ -219,12 +219,12 @@ def eval_model(model, data_loader, loss_fn_CE, loss_fn_MSE, device, n_examples):
             _, preds3 = torch.max(output3, dim=1)
             mes2 = mean_squared_error(targets[:,3],output2)
 
-            loss1 = loss_fn_CE(output1, targets[:,0])
+            loss1 = loss_fn_CE(output1, targets[:,0].type(torch.LongTensor))
             loss4 = loss_fn_MSE(output4, targets[:,3])
             loss = loss1 + loss4
             if torch.sum(preds1 == 1) != 0:
                 loss2 = loss_fn_MSE(output2[preds1 == 1], targets[:,1][preds1 == 1])
-                loss3 = loss_fn_CE(output3[preds1 == 1], targets[:,2][preds1 == 1])
+                loss3 = loss_fn_CE(output3[preds1 == 1], targets[:,2][preds1 == 1].type(torch.LongTensor))
                 loss = loss2 + loss3
                 loss = loss/4
             else:
