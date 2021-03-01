@@ -183,7 +183,7 @@ def train_epoch(
         else:
             loss = loss/2
 
-        correct_predictions1 += c(preds1 == targets[:,0])
+        correct_predictions1 += torch.sum(preds1 == targets[:,0])
         acc1 = correct_predictions1.double() / n_examples
         correct_predictions2 += torch.sum(preds2 == targets[:,2])
         acc2 = correct_predictions2.double() / n_examples
@@ -230,7 +230,7 @@ def eval_model(model, data_loader, loss_fn_CE, loss_fn_MSE, device, n_examples):
             else:
                 loss = loss/2
 
-            correct_predictions1 += c(preds1 == targets[:,0])
+            correct_predictions1 += torch.sum(preds1 == targets[:,0])
             acc1 = correct_predictions1.double() / n_examples
             correct_predictions2 += torch.sum(preds2 == targets[:,2])
             acc2 = correct_predictions2.double() / n_examples
