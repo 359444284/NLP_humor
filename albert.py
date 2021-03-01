@@ -145,6 +145,7 @@ class MyModel(nn.Module):
 
 def train_epoch(
     model,
+    mtl,
     data_loader,
     loss_fn_CE,
     loss_fn_MSE,
@@ -174,16 +175,12 @@ def train_epoch(
         mes2 = (output4 - targets[:,3]).norm(2).pow(2)
         
         
-        loss1 = loss_fn_CE(output1, targets[:,0].type(torch.cuda.LongTensor))
-        loss4 = loss_fn_MSE(output4, targets[:,3])
-        loss = loss1 + loss4
-        if torch.sum(preds1 == 1) != 0:
-            loss2 = loss_fn_MSE(output2[preds1 == 1], targets[:,1][preds1 == 1])
-            loss3 = loss_fn_CE(output3[preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor))
-            loss = loss2 + loss3
-            loss = loss/4
-        else:
-            loss = loss/2
+        loss, log_vars = mtl(output1,
+                             output2[preds1 == 1],
+                             output3[preds1 == 1],
+                             output4,
+                             [targets[:,1], targets[:,2][preds1 == 1], targets[:,3][preds1 == 1], targets[:,4]]
+                         )
 
         correct_predictions1 += torch.sum(preds1 == targets[:,0])
         acc1 = correct_predictions1.double() / n_examples
@@ -200,7 +197,7 @@ def train_epoch(
     return acc1, mes1, acc2, mes2, np.mean(losses)
 
 
-def eval_model(model, data_loader, loss_fn_CE, loss_fn_MSE, device, n_examples):
+def eval_model(model, mtl, data_loader, loss_fn_CE, loss_fn_MSE, device, n_examples):
     model = model.eval()
     losses = []
     correct_predictions1 = 0
@@ -223,16 +220,12 @@ def eval_model(model, data_loader, loss_fn_CE, loss_fn_MSE, device, n_examples):
             _, preds3 = torch.max(output3, dim=1)
             mes2 = (output4 - targets[:,3]).norm(2).pow(2)
 
-            loss1 = loss_fn_CE(output1, targets[:,0].type(torch.cuda.LongTensor))
-            loss4 = loss_fn_MSE(output4, targets[:,3])
-            loss = loss1 + loss4
-            if torch.sum(preds1 == 1) != 0:
-                loss2 = loss_fn_MSE(output2[preds1 == 1], targets[:,1][preds1 == 1])
-                loss3 = loss_fn_CE(output3[preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor))
-                loss = loss2 + loss3
-                loss = loss/4
-            else:
-                loss = loss/2
+            loss, log_vars = mtl(output1,
+                                 output2[preds1 == 1],
+                                 output3[preds1 == 1],
+                                 output4,
+                                 [targets[:,1], targets[:,2][preds1 == 1], targets[:,3][preds1 == 1], targets[:,4]]
+                             )
 
             correct_predictions1 += torch.sum(preds1 == targets[:,0])
             acc1 = correct_predictions1.double() / n_examples
@@ -275,6 +268,33 @@ def get_predictions(model, data_loader):
     real_values = torch.stack(real_values).cpu()
     return review_texts, predictions, prediction_probs, real_values
 
+class MultiTaskLossWrapper():
+    def __init__(self, task_num, model):
+        super(MultiTaskLossWrapper, self).__init__()
+        self.task_num = task_num
+        self.log_vars = nn.Parameter(torch.zeros((task_num)))
+
+    def forward(self, output1, output2, output3, output4, targets):
+        
+
+        precision1 = torch.exp(-self.log_vars[0])
+        loss = torch.sum(precision1 * (targets[0] - output1) ** 2. + self.log_vars[0], -1)
+        
+        if output2.numel():
+            precision2 = torch.exp(-self.log_vars[1])
+            loss += torch.sum(precision2 * (targets[1] - output2) ** 2. + self.log_vars[1], -1)
+        
+        if output2.numel():
+            precision3 = torch.exp(-self.log_vars[2])
+            loss += torch.sum(precision3 * (targets[2] - output3) ** 2. + self.log_vars[2], -1)
+        
+        precision4 = torch.exp(-self.log_vars[3])
+        loss += torch.sum(precision4 * (targets[3] - output4) ** 2. + self.log_vars[3], -1)
+
+        loss = torch.mean(loss)
+
+        return loss, self.log_vars.data.tolist()
+
 if __name__ == '__main__':
 
     set_seed(RANDOM_SEED)
@@ -306,6 +326,7 @@ if __name__ == '__main__':
     data = next(iter(train_data_loader))
 
     model = MyModel()
+    mtl = MultiTaskLossWrapper().to(device)
     #model.load_state_dict(torch.load('./best_model_state.bin'))
 
     if torch.cuda.device_count()>1:
@@ -334,6 +355,7 @@ if __name__ == '__main__':
         print('-' * 10)
         train_acc_1, train_mse_1, train_acc_2, train_mse_2, train_loss = train_epoch(
             model,
+            mtl,
             train_data_loader,
             loss_fn_CE,
             loss_fn_MSE,
@@ -345,6 +367,7 @@ if __name__ == '__main__':
         print(f'Train loss {train_loss} accuracy1 {train_acc_1} accuracy2 {train_acc_2}')
         val_acc_1, val_mse_1, val_acc_2, val_mse_1, val_loss = eval_model(
             model,
+            mtl,
             val_data_loader,
             loss_fn_CE,
             loss_fn_MSE,
