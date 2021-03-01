@@ -268,8 +268,8 @@ def get_predictions(model, data_loader):
     real_values = torch.stack(real_values).cpu()
     return review_texts, predictions, prediction_probs, real_values
 
-class MultiTaskLossWrapper():
-    def __init__(self, task_num, model):
+class MultiTaskLossWrapper(task_num):
+    def __init__(self, task_num):
         super(MultiTaskLossWrapper, self).__init__()
         self.task_num = task_num
         self.log_vars = nn.Parameter(torch.zeros((task_num)))
@@ -326,7 +326,7 @@ if __name__ == '__main__':
     data = next(iter(train_data_loader))
 
     model = MyModel()
-    mtl = MultiTaskLossWrapper().to(device)
+    mtl = MultiTaskLossWrapper(4).to(device)
     #model.load_state_dict(torch.load('./best_model_state.bin'))
 
     if torch.cuda.device_count()>1:
