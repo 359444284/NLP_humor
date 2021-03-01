@@ -198,7 +198,7 @@ def train_epoch(
     return acc1, mes1, acc2, mes2, np.mean(losses)
 
 
-def eval_model(model, data_loader, loss_fn, device, n_examples):
+def eval_model(model, data_loader, loss_fn_CE, loss_fn_MSE, device, n_examples):
     model = model.eval()
     losses = []
     correct_predictions1 = 0
@@ -317,8 +317,9 @@ if __name__ == '__main__':
         num_warmup_steps=0,
         num_training_steps=total_steps
     )
-
-    loss_fn = nn.CrossEntropyLoss().to(device)
+    
+    loss_fn_CE = nn.CrossEntropyLoss().to(device)
+    loss_fn_MSE = nn.MSELoss().to(device)
 
     history = defaultdict(list)
     best_accuracy = 0
@@ -328,7 +329,8 @@ if __name__ == '__main__':
         train_acc_1, train_mse_1, train_acc_2, train_mse_2, train_loss = train_epoch(
             model,
             train_data_loader,
-            loss_fn,
+            loss_fn_CE,
+            loss_fn_MSE,
             optimizer,
             device,
             scheduler,
@@ -338,7 +340,8 @@ if __name__ == '__main__':
         val_acc_1, val_mse_1, val_acc_2, val_mse_1, val_loss = eval_model(
             model,
             val_data_loader,
-            loss_fn,
+            loss_fn_CE,
+            loss_fn_MSE,
             device,
             len(df_val)
         )
