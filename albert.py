@@ -166,6 +166,8 @@ def train_epoch(
           input_ids=input_ids,
           attention_mask=attention_mask
         )
+        output2 = output2[:,0]
+        output4 = output4[:,0]
         _, preds1 = torch.max(output1, dim=1)
         mes1 = (output2 - targets[:,1]).norm(2).pow(2)
         _, preds3 = torch.max(output3, dim=1)
@@ -213,6 +215,8 @@ def eval_model(model, data_loader, loss_fn_CE, loss_fn_MSE, device, n_examples):
             input_ids=input_ids,
             attention_mask=attention_mask
             )
+            output2 = output2[:,0]
+            output4 = output4[:,0]
          
             _, preds1 = torch.max(output1, dim=1)
             mes1 = (output2 - targets[:,1]).norm(2).pow(2)
@@ -254,6 +258,8 @@ def get_predictions(model, data_loader):
                 input_ids=input_ids,
                 attention_mask=attention_mask
             )
+            output2 = output2[:,0]
+            output4 = output4[:,0]
             
             _, preds1 = torch.max(output1, dim=1)
             mes1 = mean_squared_error(targets[:,1],output2)
