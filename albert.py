@@ -421,7 +421,7 @@ if __name__ == '__main__':
         optimizer1.set_learning_rate(optimizer1.learning_rate * lr_mult)
         if loss.item() < best_loss:
             best_loss = loss.item()
-        if loss.item() > 10 * best_loss or optimizer1.learning_rate > 1.:
+        if loss.item() > 100 * best_loss or optimizer1.learning_rate > 1.:
             break
     
 
