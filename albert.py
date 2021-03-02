@@ -420,7 +420,7 @@ if __name__ == '__main__':
         losses.append(loss.item())
         optimizer1.set_learning_rate(optimizer1.learning_rate * lr_mult)
         if loss.data[0] < best_loss:
-            best_loss = loss.data[0]
+            best_loss = loss.item()
         if loss.data[0] > 4 * best_loss or optimizer1.learning_rate > 1.:
             break
 
