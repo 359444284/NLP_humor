@@ -371,7 +371,7 @@ if __name__ == '__main__':
     input_ids = data['input_ids'].to(device)
     attention_mask = data['attention_mask'].to(device)
 
-    optimizer = AdamW(model.parameters(), lr=2e-6, correct_bias=False)
+    optimizer = AdamW(model.parameters(), lr=2e-5, correct_bias=False)
     total_steps = len(train_data_loader) * EPOCHS
 
     scheduler = get_linear_schedule_with_warmup(
@@ -383,100 +383,100 @@ if __name__ == '__main__':
     loss_fn_CE = nn.CrossEntropyLoss().to(device)
     loss_fn_MSE = nn.MSELoss().to(device)
     
-    basic_optim = AdamW(model.parameters(), lr=1e-6, correct_bias=False)
-    optimizer1 = ScheduledOptim(basic_optim)
+#     basic_optim = AdamW(model.parameters(), lr=1e-6, correct_bias=False)
+#     optimizer1 = ScheduledOptim(basic_optim)
     
-    lr_mult = (1 / 1e-5) ** (1 / 100)
-    lr = []
-    losses = []
-    best_loss = 1e9
-    for d in train_data_loader:
-        texts = d["review_text"]
-        input_ids = d["input_ids"].to(device)
-        attention_mask = d["attention_mask"].to(device)
-        targets = d["targets"].to(device)
-        output1, output2, output3, output4 = model(
-                input_ids=input_ids,
-                attention_mask=attention_mask
-            )
-        output2 = output2[:,0]
-        output4 = output4[:,0]
-        _, preds1 = torch.max(output1, dim=1)
-        mes1 = (output2 - targets[:,1]).norm(2).pow(2)
-        _, preds3 = torch.max(output3, dim=1)
-        mes2 = (output4 - targets[:,3]).norm(2).pow(2)
+#     lr_mult = (1 / 1e-5) ** (1 / 100)
+#     lr = []
+#     losses = []
+#     best_loss = 1e9
+#     for d in train_data_loader:
+#         texts = d["review_text"]
+#         input_ids = d["input_ids"].to(device)
+#         attention_mask = d["attention_mask"].to(device)
+#         targets = d["targets"].to(device)
+#         output1, output2, output3, output4 = model(
+#                 input_ids=input_ids,
+#                 attention_mask=attention_mask
+#             )
+#         output2 = output2[:,0]
+#         output4 = output4[:,0]
+#         _, preds1 = torch.max(output1, dim=1)
+#         mes1 = (output2 - targets[:,1]).norm(2).pow(2)
+#         _, preds3 = torch.max(output3, dim=1)
+#         mes2 = (output4 - targets[:,3]).norm(2).pow(2)
         
-        loss, log_vars = mtl(preds1,
-                             output2[preds1 == 1],
-                             preds3[preds1 == 1],
-                             output4,
-                             [targets[:,0], targets[:,1][preds1 == 1], targets[:,2][preds1 == 1], targets[:,3]]
-                         )
-        # backward
-        optimizer1.zero_grad()
-        loss.backward()
-        optimizer1.step()
-        lr.append(optimizer1.learning_rate)
-        losses.append(loss.item())
-        optimizer1.set_learning_rate(optimizer1.learning_rate * lr_mult)
-        if loss.item() < best_loss:
-            best_loss = loss.item()
-        if loss.item() > 100 * best_loss or optimizer1.learning_rate > 1.:
-            break
+#         loss, log_vars = mtl(preds1,
+#                              output2[preds1 == 1],
+#                              preds3[preds1 == 1],
+#                              output4,
+#                              [targets[:,0], targets[:,1][preds1 == 1], targets[:,2][preds1 == 1], targets[:,3]]
+#                          )
+#         # backward
+#         optimizer1.zero_grad()
+#         loss.backward()
+#         optimizer1.step()
+#         lr.append(optimizer1.learning_rate)
+#         losses.append(loss.item())
+#         optimizer1.set_learning_rate(optimizer1.learning_rate * lr_mult)
+#         if loss.item() < best_loss:
+#             best_loss = loss.item()
+#         if loss.item() > 100 * best_loss or optimizer1.learning_rate > 1.:
+#             break
     
 
-    print([lr, losses])
+#     print([lr, losses])
 
 
-#     history = defaultdict(list)
-#     best_accuracy = 0
-#     for epoch in range(EPOCHS):
-#         print(f'Epoch {epoch + 1}/{EPOCHS}')
-#         print('-' * 10)
-#         train_acc_1, train_mse_1, train_acc_2, train_mse_2, train_loss = train_epoch(
-#             model,
-#             mtl,
-#             train_data_loader,
-#             loss_fn_CE,
-#             loss_fn_MSE,
-#             optimizer,
-#             device,
-#             scheduler,
-#             len(df_train)
-#         )
-#         print(f'Train loss {train_loss} accuracy1 {train_acc_1} accuracy2 {train_acc_2}')
-#         val_acc_1, val_mse_1, val_acc_2, val_mse_1, val_loss = eval_model(
-#             model,
-#             mtl,
-#             val_data_loader,
-#             loss_fn_CE,
-#             loss_fn_MSE,
-#             device,
-#             len(df_val)
-#         )
-#         print(f'Val   loss {val_loss} accuracy1 {val_acc_1} accuracy2 {val_acc_2}')
-#         print()
-#         history['train_acc_1'].append(train_acc_1)
-#         history['train_acc_2'].append(train_acc_2)
-#         history['train_loss'].append(train_loss)
-#         history['val_acc_1'].append(val_acc_1)
-#         history['val_acc_2'].append(val_acc_2)
-#         history['val_loss'].append(val_loss)
-#         mean_acc = (val_acc_1 + val_acc_2)/2
-#         if mean_acc > best_accuracy:
-#             torch.save(model.state_dict(), 'best_model_state.bin')
-#             best_accuracy = mean_acc
+    history = defaultdict(list)
+    best_accuracy = 0
+    for epoch in range(EPOCHS):
+        print(f'Epoch {epoch + 1}/{EPOCHS}')
+        print('-' * 10)
+        train_acc_1, train_mse_1, train_acc_2, train_mse_2, train_loss = train_epoch(
+            model,
+            mtl,
+            train_data_loader,
+            loss_fn_CE,
+            loss_fn_MSE,
+            optimizer,
+            device,
+            scheduler,
+            len(df_train)
+        )
+        print(f'Train loss {train_loss} accuracy1 {train_acc_1} accuracy2 {train_acc_2}')
+        val_acc_1, val_mse_1, val_acc_2, val_mse_1, val_loss = eval_model(
+            model,
+            mtl,
+            val_data_loader,
+            loss_fn_CE,
+            loss_fn_MSE,
+            device,
+            len(df_val)
+        )
+        print(f'Val   loss {val_loss} accuracy1 {val_acc_1} accuracy2 {val_acc_2}')
+        print()
+        history['train_acc_1'].append(train_acc_1)
+        history['train_acc_2'].append(train_acc_2)
+        history['train_loss'].append(train_loss)
+        history['val_acc_1'].append(val_acc_1)
+        history['val_acc_2'].append(val_acc_2)
+        history['val_loss'].append(val_loss)
+        mean_acc = (val_acc_1 + val_acc_2)/2
+        if mean_acc > best_accuracy:
+            torch.save(model.state_dict(), 'best_model_state.bin')
+            best_accuracy = mean_acc
 
 
 
 
-#     y_review_texts, y_pred, y_pred_probs, y_test = get_predictions(
-#         model,
-#         test_data_loader
-#     )
+    y_review_texts, y_pred, y_pred_probs, y_test = get_predictions(
+        model,
+        test_data_loader
+    )
 
-#     print(classification_report(y_test[:,0], y_pred[:,0], target_names=class_names_1))
-#     print((y_test[:,1] - y_pred[:,1]).norm(2).pow(2))
-#     print(classification_report(y_test[:,2], y_pred[:,2], target_names=class_names_2))
-#     print((y_test[:,3] - y_pred[:,3]).norm(2).pow(2))
+    print(classification_report(y_test[:,0], y_pred[:,0], target_names=class_names_1))
+    print((y_test[:,1] - y_pred[:,1]).norm(2).pow(2))
+    print(classification_report(y_test[:,2], y_pred[:,2], target_names=class_names_2))
+    print((y_test[:,3] - y_pred[:,3]).norm(2).pow(2))
 
