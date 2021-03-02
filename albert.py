@@ -383,7 +383,7 @@ if __name__ == '__main__':
     loss_fn_CE = nn.CrossEntropyLoss().to(device)
     loss_fn_MSE = nn.MSELoss().to(device)
     
-    basic_optim = AdamW(model.parameters(), lr=1e-5, correct_bias=False)
+    basic_optim = AdamW(model.parameters(), lr=1e-6, correct_bias=False)
     optimizer1 = ScheduledOptim(basic_optim)
     
     lr_mult = (1 / 1e-5) ** (1 / 100)
