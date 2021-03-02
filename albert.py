@@ -435,55 +435,55 @@ if __name__ == '__main__':
     plt.ylabel('learning rate')
     plt.plot(lr)
 
-    history = defaultdict(list)
-    best_accuracy = 0
-    for epoch in range(EPOCHS):
-        print(f'Epoch {epoch + 1}/{EPOCHS}')
-        print('-' * 10)
-        train_acc_1, train_mse_1, train_acc_2, train_mse_2, train_loss = train_epoch(
-            model,
-            mtl,
-            train_data_loader,
-            loss_fn_CE,
-            loss_fn_MSE,
-            optimizer,
-            device,
-            scheduler,
-            len(df_train)
-        )
-        print(f'Train loss {train_loss} accuracy1 {train_acc_1} accuracy2 {train_acc_2}')
-        val_acc_1, val_mse_1, val_acc_2, val_mse_1, val_loss = eval_model(
-            model,
-            mtl,
-            val_data_loader,
-            loss_fn_CE,
-            loss_fn_MSE,
-            device,
-            len(df_val)
-        )
-        print(f'Val   loss {val_loss} accuracy1 {val_acc_1} accuracy2 {val_acc_2}')
-        print()
-        history['train_acc_1'].append(train_acc_1)
-        history['train_acc_2'].append(train_acc_2)
-        history['train_loss'].append(train_loss)
-        history['val_acc_1'].append(val_acc_1)
-        history['val_acc_2'].append(val_acc_2)
-        history['val_loss'].append(val_loss)
-        mean_acc = (val_acc_1 + val_acc_2)/2
-        if mean_acc > best_accuracy:
-            torch.save(model.state_dict(), 'best_model_state.bin')
-            best_accuracy = mean_acc
+#     history = defaultdict(list)
+#     best_accuracy = 0
+#     for epoch in range(EPOCHS):
+#         print(f'Epoch {epoch + 1}/{EPOCHS}')
+#         print('-' * 10)
+#         train_acc_1, train_mse_1, train_acc_2, train_mse_2, train_loss = train_epoch(
+#             model,
+#             mtl,
+#             train_data_loader,
+#             loss_fn_CE,
+#             loss_fn_MSE,
+#             optimizer,
+#             device,
+#             scheduler,
+#             len(df_train)
+#         )
+#         print(f'Train loss {train_loss} accuracy1 {train_acc_1} accuracy2 {train_acc_2}')
+#         val_acc_1, val_mse_1, val_acc_2, val_mse_1, val_loss = eval_model(
+#             model,
+#             mtl,
+#             val_data_loader,
+#             loss_fn_CE,
+#             loss_fn_MSE,
+#             device,
+#             len(df_val)
+#         )
+#         print(f'Val   loss {val_loss} accuracy1 {val_acc_1} accuracy2 {val_acc_2}')
+#         print()
+#         history['train_acc_1'].append(train_acc_1)
+#         history['train_acc_2'].append(train_acc_2)
+#         history['train_loss'].append(train_loss)
+#         history['val_acc_1'].append(val_acc_1)
+#         history['val_acc_2'].append(val_acc_2)
+#         history['val_loss'].append(val_loss)
+#         mean_acc = (val_acc_1 + val_acc_2)/2
+#         if mean_acc > best_accuracy:
+#             torch.save(model.state_dict(), 'best_model_state.bin')
+#             best_accuracy = mean_acc
 
 
 
 
-    y_review_texts, y_pred, y_pred_probs, y_test = get_predictions(
-        model,
-        test_data_loader
-    )
+#     y_review_texts, y_pred, y_pred_probs, y_test = get_predictions(
+#         model,
+#         test_data_loader
+#     )
 
-    print(classification_report(y_test[:,0], y_pred[:,0], target_names=class_names_1))
-    print((y_test[:,1] - y_pred[:,1]).norm(2).pow(2))
-    print(classification_report(y_test[:,2], y_pred[:,2], target_names=class_names_2))
-    print((y_test[:,3] - y_pred[:,3]).norm(2).pow(2))
+#     print(classification_report(y_test[:,0], y_pred[:,0], target_names=class_names_1))
+#     print((y_test[:,1] - y_pred[:,1]).norm(2).pow(2))
+#     print(classification_report(y_test[:,2], y_pred[:,2], target_names=class_names_2))
+#     print((y_test[:,3] - y_pred[:,3]).norm(2).pow(2))
 
