@@ -417,7 +417,7 @@ if __name__ == '__main__':
         loss.backward()
         optimizer1.step()
         lr.append(optimizer1.learning_rate)
-        losses.append(loss.data[0])
+        losses.append(loss.item())
         optimizer1.set_learning_rate(optimizer1.learning_rate * lr_mult)
         if loss.data[0] < best_loss:
             best_loss = loss.data[0]
