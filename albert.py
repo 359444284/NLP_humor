@@ -15,7 +15,7 @@ import matplotlib as plt
 RANDOM_SEED = 750
 BATCH_SIZE = 8
 MAX_LEN = 150
-EPOCHS = 35
+EPOCHS = 3
 torch.cuda.current_device()
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
@@ -347,6 +347,55 @@ if __name__ == '__main__':
     
     loss_fn_CE = nn.CrossEntropyLoss().to(device)
     loss_fn_MSE = nn.MSELoss().to(device)
+    
+    lr_mult = (1 / 1e-5) ** (1 / 100)
+    lr = []
+    losses = []
+    best_loss = 1e9
+    for d in train_data_loader:
+#         with torch.cuda.device(0):
+#             data = Variable(data.cuda())
+#             label = Variable(label.cuda())
+        # forward
+        texts = d["review_text"]
+        input_ids = d["input_ids"].to(device)
+        attention_mask = d["attention_mask"].to(device)
+        targets = d["targets"].to(device)
+        output1, output2, output3, output4 = model(
+                input_ids=input_ids,
+                attention_mask=attention_mask
+            )
+        output2 = output2[:,0]
+        output4 = output4[:,0]
+        
+        loss, log_vars = mtl(preds1,
+                             output2[preds1 == 1],
+                             preds3[preds1 == 1],
+                             output4,
+                             [targets[:,0], targets[:,1][preds1 == 1], targets[:,2][preds1 == 1], targets[:,3]]
+                         )
+        # backward
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+        lr.append(optimizer.learning_rate)
+        losses.append(loss.data[0])
+        optimizer.set_learning_rate(optimizer.learning_rate * lr_mult)
+        if loss.data[0] < best_loss:
+            best_loss = loss.data[0]
+        if loss.data[0] > 4 * best_loss or optimizer.learning_rate > 1.:
+            break
+
+    plt.figure()
+    plt.xticks(np.log([1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1]), (1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1))
+    plt.xlabel('learning rate')
+    plt.ylabel('loss')
+    plt.plot(np.log(lr), losses)
+    plt.show()
+    plt.figure()
+    plt.xlabel('num iterations')
+    plt.ylabel('learning rate')
+    plt.plot(lr)
 
     history = defaultdict(list)
     best_accuracy = 0
