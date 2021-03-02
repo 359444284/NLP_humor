@@ -363,6 +363,10 @@ if __name__ == '__main__':
             )
         output2 = output2[:,0]
         output4 = output4[:,0]
+        _, preds1 = torch.max(output1, dim=1)
+        mes1 = (output2 - targets[:,1]).norm(2).pow(2)
+        _, preds3 = torch.max(output3, dim=1)
+        mes2 = (output4 - targets[:,3]).norm(2).pow(2)
         
         loss, log_vars = mtl(preds1,
                              output2[preds1 == 1],
