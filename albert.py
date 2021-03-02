@@ -348,6 +348,9 @@ if __name__ == '__main__':
     loss_fn_CE = nn.CrossEntropyLoss().to(device)
     loss_fn_MSE = nn.MSELoss().to(device)
     
+    basic_optim = AdamW(model.parameters(), lr=2e-6, correct_bias=False)
+    optimizer1 = ScheduledOptim(basic_optim)
+    
     lr_mult = (1 / 1e-5) ** (1 / 100)
     lr = []
     losses = []
@@ -375,15 +378,15 @@ if __name__ == '__main__':
                              [targets[:,0], targets[:,1][preds1 == 1], targets[:,2][preds1 == 1], targets[:,3]]
                          )
         # backward
-        optimizer.zero_grad()
+        optimizer1.zero_grad()
         loss.backward()
-        optimizer.step()
-        lr.append(optimizer.learning_rate)
+        optimizer1.step()
+        lr.append(optimizer1.learning_rate)
         losses.append(loss.data[0])
-        optimizer.set_learning_rate(optimizer.learning_rate * lr_mult)
+        optimizer1.set_learning_rate(optimizer1.learning_rate * lr_mult)
         if loss.data[0] < best_loss:
             best_loss = loss.data[0]
-        if loss.data[0] > 4 * best_loss or optimizer.learning_rate > 1.:
+        if loss.data[0] > 4 * best_loss or optimizer1.learning_rate > 1.:
             break
 
     plt.figure()
