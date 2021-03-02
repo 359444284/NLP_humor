@@ -15,7 +15,7 @@ import matplotlib as plt
 RANDOM_SEED = 750
 BATCH_SIZE = 8
 MAX_LEN = 150
-EPOCHS = 20
+EPOCHS = 35
 torch.cuda.current_device()
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
@@ -255,9 +255,9 @@ def get_predictions(model, data_loader):
             output4 = output4[:,0]
             
             _, preds1 = torch.max(output1, dim=1)
-            mes1 = mean_squared_error(targets[:,1],output2)
+            mes1 = (output2 - targets[:,1]).norm(2).pow(2)
             _, preds3 = torch.max(output3, dim=1)
-            mes2 = mean_squared_error(targets[:,3],output2)
+            mes2 = (output4 - targets[:,3]).norm(2).pow(2)
             
             review_texts.extend(texts)
             predictions.extend([preds1, mes1, preds2, mes2])
