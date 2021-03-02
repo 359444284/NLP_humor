@@ -10,9 +10,9 @@ from sklearn.metrics import confusion_matrix, classification_report, roc_curve, 
 from collections import defaultdict
 import pandas as pd
 import random
-import matplotlib as plt
+import matplotlib.pyplot as plt
 
-RANDOM_SEED = 750
+RANDOM_SEED = 750-
 BATCH_SIZE = 8
 MAX_LEN = 150
 EPOCHS = 3
@@ -424,7 +424,7 @@ if __name__ == '__main__':
         if loss.item() > 4 * best_loss or optimizer1.learning_rate > 1.:
             break
 
-    plt.pyplot.figure()
+    plt.figure()
     plt.xticks(np.log([1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1]), (1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1))
     plt.xlabel('learning rate')
     plt.ylabel('loss')
