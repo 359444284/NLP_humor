@@ -175,9 +175,9 @@ def train_epoch(
         mes2 = (output4 - targets[:,3]).norm(2).pow(2)
         
         
-        loss, log_vars = mtl(output1,
+        loss, log_vars = mtl(preds1,
                              output2[preds1 == 1],
-                             output3[preds1 == 1],
+                             preds3[preds1 == 1],
                              output4,
                              [targets[:,0], targets[:,1][preds1 == 1], targets[:,2][preds1 == 1], targets[:,3]]
                          )
@@ -220,12 +220,12 @@ def eval_model(model, mtl, data_loader, loss_fn_CE, loss_fn_MSE, device, n_examp
             _, preds3 = torch.max(output3, dim=1)
             mes2 = (output4 - targets[:,3]).norm(2).pow(2)
 
-            loss, log_vars = mtl(output1,
-                                 output2[preds1 == 1],
-                                 output3[preds1 == 1],
-                                 output4,
-                                 [targets[:,0], targets[:,1][preds1 == 1], targets[:,2][preds1 == 1], targets[:,3]]
-                             )
+            loss, log_vars = mtl(preds1,
+                             output2[preds1 == 1],
+                             preds3[preds1 == 1],
+                             output4,
+                             [targets[:,0], targets[:,1][preds1 == 1], targets[:,2][preds1 == 1], targets[:,3]]
+                         )
 
             correct_predictions1 += torch.sum(preds1 == targets[:,0])
             acc1 = correct_predictions1.double() / n_examples
