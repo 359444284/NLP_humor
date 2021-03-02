@@ -260,7 +260,7 @@ def get_predictions(model, data_loader):
             mes2 = (output4 - targets[:,3]).norm(2).pow(2)
             
             review_texts.extend(texts)
-            predictions.extend([preds1, mes1, preds2, mes2])
+            predictions.extend([preds1, mes1, preds3, mes2])
             prediction_probs.extend([output1, output2, output3, output4])
             real_values.extend([targets[:,0], targets[:,1], targets[:,2], targets[:,3]])
     predictions = torch.stack(predictions).cpu()
