@@ -424,7 +424,7 @@ if __name__ == '__main__':
         if loss.item() > 4 * best_loss or optimizer1.learning_rate > 1.:
             break
 
-    plt.figure()
+    plt.pyplot.figure()
     plt.xticks(np.log([1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1]), (1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1))
     plt.xlabel('learning rate')
     plt.ylabel('loss')
