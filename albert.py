@@ -383,7 +383,7 @@ if __name__ == '__main__':
     loss_fn_CE = nn.CrossEntropyLoss().to(device)
     loss_fn_MSE = nn.MSELoss().to(device)
     
-    basic_optim = AdamW(model.parameters(), lr=1e-7, correct_bias=False)
+    basic_optim = AdamW(model.parameters(), lr=1e-6, correct_bias=False)
     optimizer1 = ScheduledOptim(basic_optim)
     
     lr_mult = (1 / 1e-5) ** (1 / 100)
@@ -421,7 +421,7 @@ if __name__ == '__main__':
         optimizer1.set_learning_rate(optimizer1.learning_rate * lr_mult)
         if loss.item() < best_loss:
             best_loss = loss.item()
-        if loss.item() > 4 * best_loss or optimizer1.learning_rate > 1.:
+        if loss.item() > 10 * best_loss or optimizer1.learning_rate > 1.:
             break
     
 
