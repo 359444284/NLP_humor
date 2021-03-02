@@ -423,17 +423,10 @@ if __name__ == '__main__':
             best_loss = loss.item()
         if loss.item() > 4 * best_loss or optimizer1.learning_rate > 1.:
             break
+    
 
-    plt.figure()
-    plt.xticks(np.log([1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1]), (1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1))
-    plt.xlabel('learning rate')
-    plt.ylabel('loss')
-    plt.plot(np.log(lr), losses)
-    plt.show()
-    plt.figure()
-    plt.xlabel('num iterations')
-    plt.ylabel('learning rate')
-    plt.plot(lr)
+    print(zip(np.log(lr), losses))
+
 
 #     history = defaultdict(list)
 #     best_accuracy = 0
