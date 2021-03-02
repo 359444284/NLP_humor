@@ -419,9 +419,9 @@ if __name__ == '__main__':
         lr.append(optimizer1.learning_rate)
         losses.append(loss.item())
         optimizer1.set_learning_rate(optimizer1.learning_rate * lr_mult)
-        if loss.data[0] < best_loss:
+        if loss.item() < best_loss:
             best_loss = loss.item()
-        if loss.data[0] > 4 * best_loss or optimizer1.learning_rate > 1.:
+        if loss.item() > 4 * best_loss or optimizer1.learning_rate > 1.:
             break
 
     plt.figure()
