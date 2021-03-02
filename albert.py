@@ -353,10 +353,6 @@ if __name__ == '__main__':
     losses = []
     best_loss = 1e9
     for d in train_data_loader:
-#         with torch.cuda.device(0):
-#             data = Variable(data.cuda())
-#             label = Variable(label.cuda())
-        # forward
         texts = d["review_text"]
         input_ids = d["input_ids"].to(device)
         attention_mask = d["attention_mask"].to(device)
