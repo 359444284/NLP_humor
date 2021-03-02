@@ -425,7 +425,7 @@ if __name__ == '__main__':
             break
     
 
-    print([zip(np.log(lr), losses)])
+    print([np.log(lr), losses])
 
 
 #     history = defaultdict(list)
