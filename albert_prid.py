@@ -279,7 +279,8 @@ def get_predictions(model, data_loader):
     model = model.eval()
     review_texts = []
     predictions = []
-    prediction_probs = []
+    prediction_probs_C = []
+    prediction_probs_R = []
     with torch.no_grad():
         for d in data_loader:
             texts = d["review_text"]
@@ -297,15 +298,20 @@ def get_predictions(model, data_loader):
             
             review_texts.extend(texts)
             predictions.extend([preds1, output2, preds3, output4])
+            prediction_probs_C.extend([output1, output3])
+            prediction_probs_R.extend([output2, output4])
     predictions = torch.stack(predictions).cpu()
     prediction_probs = torch.stack(prediction_probs).cpu()
-    return review_texts, predictions
+    prediction_probs_C = torch.stack(prediction_probs_C).cpu()
+    prediction_probs_R = torch.stack(prediction_probs_R).cpu()
+    return review_texts, predictions, prediction_probs_C, prediction_probs_R
 
 def get_predictions1(model, data_loader):
     model = model.eval()
     review_texts = []
     predictions = []
-    prediction_probs = []
+    prediction_probs_C = []
+    prediction_probs_E = []
     real_values = []
     with torch.no_grad():
         for d in data_loader:
@@ -327,12 +333,14 @@ def get_predictions1(model, data_loader):
             
             review_texts.extend(texts)
             predictions.extend([preds1, mes1, preds3, mes2])
-            prediction_probs.extend([output1, output2, output3, output4])
+            prediction_probs_C.extend([output1, output3])
+            prediction_probs_R.extend([output2, output4])
             real_values.extend([targets[:,0], targets[:,1], targets[:,2], targets[:,3]])
     predictions = torch.stack(predictions).cpu()
-    prediction_probs = torch.stack(prediction_probs).cpu()
+    prediction_probs_C = torch.stack(prediction_probs_C).cpu()
+    prediction_probs_R = torch.stack(prediction_probs_R).cpu()
     real_values = torch.stack(real_values).cpu()
-    return review_texts, predictions, prediction_probs, real_values
+    return review_texts, predictions, prediction_probs_C, prediction_probs_R, real_values
 
 class MultiTaskLossWrapper(nn.Module):
     def __init__(self, task_num, loss_function_CE):
@@ -392,7 +400,7 @@ if __name__ == '__main__':
      loss_fn_MSE = nn.MSELoss().to(device)
      mtl = MultiTaskLossWrapper(4,loss_fn_CE).to(device)
 
-     y_review_texts, y_pred = get_predictions(
+     y_review_texts, y_pred, y_probs_C, y_probs_R = get_predictions(
      model,
      test_data_loader
      )
@@ -430,7 +438,7 @@ if __name__ == '__main__':
      data1 = next(iter(train_data_loader1))
 
 
-     y_review_texts, y_pred, y_pred_probs, y_test = get_predictions1(
+     y_review_texts, y_pred, , y_probs_C, y_probs_R, y_test = get_predictions1(
        model,
        test_data_loader1
      )
