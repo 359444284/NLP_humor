@@ -282,7 +282,6 @@ def get_predictions(model, data_loader):
     prediction_probs_C = []
     prediction_probs_R = []
     with torch.no_grad():
-        print(np.shape(data_loader))
         for d in data_loader:
             texts = d["review_text"]
             input_ids = d["input_ids"].to(device)
@@ -302,6 +301,7 @@ def get_predictions(model, data_loader):
             predictions.extend([preds1, preds3])
             prediction_probs_C.extend([output1, output3])
             prediction_probs_R.extend([output2, output4])
+    print(np.shape(predictions))
     predictions = torch.stack(predictions).cpu()
     prediction_probs_C = torch.stack(prediction_probs_C).cpu()
     prediction_probs_R = torch.stack(prediction_probs_R).cpu()
