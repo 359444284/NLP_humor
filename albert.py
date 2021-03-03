@@ -370,7 +370,7 @@ if __name__ == '__main__':
     input_ids = data['input_ids'].to(device)
     attention_mask = data['attention_mask'].to(device)
 
-    optimizer = AdamW(model.parameters(), lr=2e-6, correct_bias=False)
+    optimizer = AdamW(model.parameters(), lr=1e-6, correct_bias=False)
     total_steps = len(train_data_loader) * EPOCHS
 
     scheduler = get_linear_schedule_with_warmup(
