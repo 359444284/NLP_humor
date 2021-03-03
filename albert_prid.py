@@ -291,8 +291,8 @@ def get_predictions(model, data_loader):
                 attention_mask=attention_mask
             )
             
-            output2 = output2[:,0]
-            output4 = output4[:,0]
+#             output2 = output2[:,0]
+#             output4 = output4[:,0]
             
             _, preds1 = torch.max(output1, dim=1)
             _, preds3 = torch.max(output3, dim=1)
