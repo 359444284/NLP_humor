@@ -174,9 +174,9 @@ def train_epoch(
         _, preds3 = torch.max(output3, dim=1)
         mes2 = (output4 - targets[:,3]).norm(2).pow(2)
         
-        loss, log_vars = mtl(preds1,
+        loss, log_vars = mtl(output1,
                              output2[preds1 == 1],
-                             preds3[preds1 == 1],
+                             output3[preds1 == 1],
                              output4,
                              [targets[:,0], targets[:,1][preds1 == 1], targets[:,2][preds1 == 1], targets[:,3]]
                          )
@@ -219,9 +219,9 @@ def eval_model(model, mtl, data_loader, loss_fn_CE, loss_fn_MSE, device, n_examp
             _, preds3 = torch.max(output3, dim=1)
             mes2 = (output4 - targets[:,3]).norm(2).pow(2)
 
-            loss, log_vars = mtl(preds1,
+            loss, log_vars = mtl(output1,
                              output2[preds1 == 1],
-                             preds3[preds1 == 1],
+                             output3[preds1 == 1],
                              output4,
                              [targets[:,0], targets[:,1][preds1 == 1], targets[:,2][preds1 == 1], targets[:,3]]
                          )
@@ -259,7 +259,7 @@ def get_predictions(model, data_loader):
             mes2 = (output4 - targets[:,3]).norm(2).pow(2)
             
             review_texts.extend(texts)
-            predictions.extend([preds1, mes1, preds3, mes2])
+            predictions.extend([output1, mes1, output3, mes2])
             prediction_probs.extend([output1, output2, output3, output4])
             real_values.extend([targets[:,0], targets[:,1], targets[:,2], targets[:,3]])
     predictions = torch.stack(predictions).cpu()
