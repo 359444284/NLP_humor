@@ -94,7 +94,7 @@ class MyModel(nn.Module):
         self.tower_1 = nn.Sequential(
             nn.Dropout(p=0.8),
             nn.Linear(self.model.config.hidden_size, 2),
-            nn.Sigmoid()
+            nn.Softmax(dim=1)
         )
         
         # humor_rating
@@ -107,7 +107,7 @@ class MyModel(nn.Module):
         self.tower_3 = nn.Sequential(
             nn.Dropout(p=0.8),
             nn.Linear(self.model.config.hidden_size, 2),
-            nn.Sigmoid()
+            nn.Softmax(dim=1)
         )
         
         # offense_rating
@@ -173,7 +173,6 @@ def train_epoch(
         mes1 = (output2 - targets[:,1]).norm(2).pow(2)
         _, preds3 = torch.max(output3, dim=1)
         mes2 = (output4 - targets[:,3]).norm(2).pow(2)
-        
         
         loss, log_vars = mtl(preds1,
                              output2[preds1 == 1],
@@ -269,27 +268,28 @@ def get_predictions(model, data_loader):
     return review_texts, predictions, prediction_probs, real_values
 
 class MultiTaskLossWrapper(nn.Module):
-    def __init__(self, task_num):
+    def __init__(self, task_num, loss_function_CE):
         super(MultiTaskLossWrapper, self).__init__()
         self.task_num = task_num
         self.log_vars = nn.Parameter(torch.zeros((task_num)))
-
+        self.loss_function_CE = loss_function_CE
+        
     def forward(self, output1, output2, output3, output4, targets):
         
 
-        precision1 = torch.exp(-self.log_vars[0])
-        loss = torch.sum(precision1 * (targets[0] - output1) ** 2. + self.log_vars[0], -1)
+        precision1 = torch.exp(-2 * self.log_vars[0])
+        loss = torch.sum(precision1 * self.loss_function_CE(output1, targets[0]) + self.log_vars[0], -1)
         
-#         if output2.numel():
-#             precision2 = torch.exp(-self.log_vars[1])
-#             loss += torch.sum(precision2 * (targets[1] - output2) ** 2. + self.log_vars[1], -1)
+        if output2.numel():
+            precision2 = torch.exp(-2 * self.log_vars[1])
+            loss += torch.sum(precision2/2 * (targets[1] - output2) ** 2. + self.log_vars[1], -1)
         
         if output2.numel():
             precision3 = torch.exp(-self.log_vars[2])
-            loss += torch.sum(precision3 * (targets[2] - output3) ** 2. + self.log_vars[2], -1)
+            loss += torch.sum(precision3 * self.loss_function_CE(output3, targets[3]) + self.log_vars[2], -1)
         
-#         precision4 = torch.exp(-self.log_vars[3])
-#         loss += torch.sum(precision4 * (targets[3] - output4) ** 2. + self.log_vars[3], -1)
+        precision4 = torch.exp(-2 * self.log_vars[3])
+        loss += torch.sum(precision4/2 * (targets[3] - output4) ** 2. + self.log_vars[3], -1)
 
         loss = torch.mean(loss)
 
@@ -361,7 +361,6 @@ if __name__ == '__main__':
     data = next(iter(train_data_loader))
 
     model = MyModel()
-    mtl = MultiTaskLossWrapper(4).to(device)
     #model.load_state_dict(torch.load('./best_model_state.bin'))
 
     if torch.cuda.device_count()>1:
@@ -382,7 +381,7 @@ if __name__ == '__main__':
     
     loss_fn_CE = nn.CrossEntropyLoss().to(device)
     loss_fn_MSE = nn.MSELoss().to(device)
-    
+    mtl = MultiTaskLossWrapper(4,loss_fn_CE).to(device)
 #     basic_optim = AdamW(model.parameters(), lr=1e-6, correct_bias=False)
 #     optimizer1 = ScheduledOptim(basic_optim)
     
