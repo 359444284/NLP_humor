@@ -420,7 +420,7 @@ if __name__ == '__main__':
      model,
      test_data_loader
      )
-     print(np.shape(y_pred))
+
      result = pd.read_csv("./public_test.csv", header=0)
      label_1 = pd.DataFrame({'is_humor':y_pred[0]})
      label_1 = label_1[['is_humor']]
