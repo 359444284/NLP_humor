@@ -416,7 +416,7 @@ if __name__ == '__main__':
      loss_fn_MSE = nn.MSELoss().to(device)
      mtl = MultiTaskLossWrapper(4,loss_fn_CE).to(device)
 
-     y_review_texts, y_pred, y_probs_C, y_probs_R = get_predictions(
+     y_review_texts, y_pred= get_predictions(
      model,
      test_data_loader
      )
