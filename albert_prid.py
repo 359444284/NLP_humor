@@ -297,7 +297,7 @@ def get_predictions(model, data_loader):
             _, preds3 = torch.max(output3, dim=1)
             
             review_texts.extend(texts)
-            predictions.extend([preds1, output2, preds3, output4])
+            predictions.extend([preds1, preds3])
             prediction_probs_C.extend([output1, output3])
             prediction_probs_R.extend([output2, output4])
     predictions = torch.stack(predictions).cpu()
@@ -310,7 +310,7 @@ def get_predictions1(model, data_loader):
     review_texts = []
     predictions = []
     prediction_probs_C = []
-    prediction_probs_E = []
+    prediction_probs_R = []
     real_values = []
     with torch.no_grad():
         for d in data_loader:
