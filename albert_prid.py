@@ -382,7 +382,7 @@ if __name__ == '__main__':
 
      model = MyModel()
      if torch.cuda.device_count()>1:
-     model=nn.DataParallel(model,device_ids=[0,1,2])
+          model=nn.DataParallel(model,device_ids=[0,1,2])
 
 
      model.load_state_dict(torch.load('./best_model_state.bin'))
