@@ -367,82 +367,80 @@ class MultiTaskLossWrapper(nn.Module):
 
 if __name__ == '__main__':
 
-    set_seed(RANDOM_SEED)
+     set_seed(RANDOM_SEED)
 
-    MODEL_PATH = 'albert-xxlarge-v2'
-    tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH, output_hidden_states=True, return_dict=True)
+     MODEL_PATH = 'albert-xxlarge-v2'
+     tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH, output_hidden_states=True, return_dict=True)
 
-    df = pd.read_csv("./datas/task1/train/train.csv")
-    df = df.fillna(0.0)
-    df['list'] = df[df.columns[2:]].values.tolist()
-    df = df[['text', 'list']]
-     
-    class_names_1 = ['is_humor', 'not_humor']
-    class_names_2 = ['is_CON', 'not_CON']
-    
-    test_data_loader = create_data_loader(df, tokenizer, MAX_LEN, BATCH_SIZE)
+     df = pd.read_csv("./public_test.csv")
+     df = df[['text']]
 
-    model = MyModel()
-    if torch.cuda.device_count()>1:
-      model=nn.DataParallel(model,device_ids=[0,1,2])
+     class_names_1 = ['is_humor', 'not_humor']
+     class_names_2 = ['is_CON', 'not_CON']
+
+     test_data_loader = create_data_loader(df, tokenizer, MAX_LEN, BATCH_SIZE)
+
+     model = MyModel()
+     if torch.cuda.device_count()>1:
+     model=nn.DataParallel(model,device_ids=[0,1,2])
 
 
-    model.load_state_dict(torch.load('./best_model_state.bin'))
+     model.load_state_dict(torch.load('./best_model_state.bin'))
 
-    model = model.to(device)
+     model = model.to(device)
 
-    optimizer = AdamW(model.parameters(), lr=2e-6, correct_bias=False)
+     optimizer = AdamW(model.parameters(), lr=2e-6, correct_bias=False)
 
-    loss_fn_CE = nn.CrossEntropyLoss().to(device)
-    loss_fn_MSE = nn.MSELoss().to(device)
-    mtl = MultiTaskLossWrapper(4,loss_fn_CE).to(device)
-    
-    y_review_texts, y_pred, y_pred_probs = get_predictions(
-        model,
-        test_data_loader
-    )
-    print(np.shape(y_pred))
-    result = pd.read_csv("./public_test.csv", header=0)
-    label_1 = pd.DataFrame({'is_humor':y_pred[0]})
-    label_1 = label_1[['is_humor']]
-    label_2 = pd.DataFrame({'humor_rating':y_pred[1]})
-    label_2 = label_2[['humor_rating']]
-    label_3 = pd.DataFrame({'humor_controversy':y_pred[2]})
-    label_3 = label_3[['humor_controversy']]
-    label_4 = pd.DataFrame({'offense_rating':y_pred[3]})
-    label_4 = label_4[['offense_rating']]
-    result = pd.concat([result,label_1,label_2,label_3,label_4],axis=1)
-    print(result)
-    result.to_csv("task1a.csv")
+     loss_fn_CE = nn.CrossEntropyLoss().to(device)
+     loss_fn_MSE = nn.MSELoss().to(device)
+     mtl = MultiTaskLossWrapper(4,loss_fn_CE).to(device)
 
-   df1 = pd.read_csv("./datas/task1/train/train.csv")
-   df1['list'] = df1[df1.columns[2:]].values.tolist()
-   df1 = df1[['text', 'list']]
-   df_train1, df_test1 = train_test_split(
+     y_review_texts, y_pred, y_pred_probs = get_predictions(
+     model,
+     test_data_loader
+     )
+     print(np.shape(y_pred))
+     result = pd.read_csv("./public_test.csv", header=0)
+     label_1 = pd.DataFrame({'is_humor':y_pred[0]})
+     label_1 = label_1[['is_humor']]
+     label_2 = pd.DataFrame({'humor_rating':y_pred[1]})
+     label_2 = label_2[['humor_rating']]
+     label_3 = pd.DataFrame({'humor_controversy':y_pred[2]})
+     label_3 = label_3[['humor_controversy']]
+     label_4 = pd.DataFrame({'offense_rating':y_pred[3]})
+     label_4 = label_4[['offense_rating']]
+     result = pd.concat([result,label_1,label_2,label_3,label_4],axis=1)
+     print(result)
+     result.to_csv("task1a.csv")
+
+     df1 = pd.read_csv("./datas/task1/train/train.csv")
+     df1['list'] = df1[df1.columns[2:]].values.tolist()
+     df1 = df1[['text', 'list']]
+     df_train1, df_test1 = train_test_split(
        df1,
        test_size=0.1,
        random_state=RANDOM_SEED
-   )
-   df_val1, df_test1 = train_test_split(
+     )
+     df_val1, df_test1 = train_test_split(
        df_test1,
        test_size=0.5,
        random_state=RANDOM_SEED
-   )
+     )
 
-   train_data_loader1 = create_data_loader1(df_train1, tokenizer, MAX_LEN, BATCH_SIZE)
-   val_data_loader1 = create_data_loader1(df_val1, tokenizer, MAX_LEN, BATCH_SIZE)
-   test_data_loader1 = create_data_loader1(df_test1, tokenizer, MAX_LEN, BATCH_SIZE)
-   data1 = next(iter(train_data_loader1))
+     train_data_loader1 = create_data_loader1(df_train1, tokenizer, MAX_LEN, BATCH_SIZE)
+     val_data_loader1 = create_data_loader1(df_val1, tokenizer, MAX_LEN, BATCH_SIZE)
+     test_data_loader1 = create_data_loader1(df_test1, tokenizer, MAX_LEN, BATCH_SIZE)
+     data1 = next(iter(train_data_loader1))
 
 
-   y_review_texts, y_pred, y_pred_probs, y_test = get_predictions1(
+     y_review_texts, y_pred, y_pred_probs, y_test = get_predictions1(
        model,
        test_data_loader1
-   )
+     )
 
-   print(classification_report(y_test[:,0], y_pred[:,0], target_names=class_names_1))
-    print((y_test[:,1] - y_pred[:,1]).norm(2).pow(2))
-    print(classification_report(y_test[:,2], y_pred[:,2], target_names=class_names_2))
-    print((y_test[:,3] - y_pred[:,3]).norm(2).pow(2))
+     print(classification_report(y_test[:,0], y_pred[:,0], target_names=class_names_1))
+     print((y_test[:,1] - y_pred[:,1]).norm(2).pow(2))
+     print(classification_report(y_test[:,2], y_pred[:,2], target_names=class_names_2))
+     print((y_test[:,3] - y_pred[:,3]).norm(2).pow(2))
 
 
