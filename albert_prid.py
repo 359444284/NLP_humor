@@ -297,10 +297,9 @@ def get_predictions(model, data_loader):
             
             review_texts.extend(texts)
             predictions.extend([preds1, output2, preds3, output4])
-            prediction_probs.extend([output1, output2, output3, output4])
     predictions = torch.stack(predictions).cpu()
     prediction_probs = torch.stack(prediction_probs).cpu()
-    return review_texts, predictions, prediction_probs
+    return review_texts, predictions
 
 def get_predictions1(model, data_loader):
     model = model.eval()
@@ -393,7 +392,7 @@ if __name__ == '__main__':
      loss_fn_MSE = nn.MSELoss().to(device)
      mtl = MultiTaskLossWrapper(4,loss_fn_CE).to(device)
 
-     y_review_texts, y_pred, y_pred_probs = get_predictions(
+     y_review_texts, y_pred = get_predictions(
      model,
      test_data_loader
      )
