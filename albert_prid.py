@@ -293,12 +293,10 @@ def get_predictions(model, data_loader):
             output4 = output4[:,0]
             
             _, preds1 = torch.max(output1, dim=1)
-            mes1 = (output2 - targets[:,1]).norm(2).pow(2)
             _, preds3 = torch.max(output3, dim=1)
-            mes2 = (output4 - targets[:,3]).norm(2).pow(2)
             
             review_texts.extend(texts)
-            predictions.extend([preds1, mes1, preds3, mes2])
+            predictions.extend([preds1, output2, preds3, output4])
             prediction_probs.extend([output1, output2, output3, output4])
     predictions = torch.stack(predictions).cpu()
     prediction_probs = torch.stack(prediction_probs).cpu()
