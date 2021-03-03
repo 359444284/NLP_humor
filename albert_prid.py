@@ -282,7 +282,7 @@ def get_predictions(model, data_loader):
     prediction_probs_C = []
     prediction_probs_R = []
     with torch.no_grad():
-        print(data_loader.size())
+        print(np.shape(data_loader))
         for d in data_loader:
             texts = d["review_text"]
             input_ids = d["input_ids"].to(device)
@@ -291,6 +291,7 @@ def get_predictions(model, data_loader):
                 input_ids=input_ids,
                 attention_mask=attention_mask
             )
+            
             output2 = output2[:,0]
             output4 = output4[:,0]
             
