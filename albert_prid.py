@@ -83,7 +83,7 @@ class GPReviewDataset1(Dataset):
             'review_text': review,
             'input_ids': encoding['input_ids'].flatten(),
             'attention_mask': encoding['attention_mask'].flatten(),
-            'targets': torch.tensor(target, dtype=torch.long)
+            'targets': torch.tensor(target, dtype=torch.float)
         }
 
 def create_data_loader(df, tokenizer, max_len, batch_size):
