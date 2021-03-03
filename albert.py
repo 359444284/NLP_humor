@@ -99,7 +99,7 @@ class MyModel(nn.Module):
         
         # humor_rating
         self.tower_2 = nn.Sequential(
-            nn.Dropout(p=0.8),
+            nn.Dropout(p=0.7),
             nn.Linear(self.model.config.hidden_size, 1)
         )
         
@@ -112,7 +112,7 @@ class MyModel(nn.Module):
         
         # offense_rating
         self.tower_4 = nn.Sequential(
-            nn.Dropout(p=0.8),
+            nn.Dropout(p=0.7),
             nn.Linear(self.model.config.hidden_size, 1)
         )
 
