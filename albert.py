@@ -239,6 +239,34 @@ def get_predictions(model, data_loader):
     review_texts = []
     predictions = []
     prediction_probs = []
+    with torch.no_grad():
+        for d in data_loader:
+            texts = d["review_text"]
+            input_ids = d["input_ids"].to(device)
+            attention_mask = d["attention_mask"].to(device)
+
+            output1, output2, output3, output4 = model(
+                input_ids=input_ids,
+                attention_mask=attention_mask
+            )
+            output2 = output2[:,0]
+            output4 = output4[:,0]
+            
+            _, preds1 = torch.max(output1, dim=1)
+            _, preds3 = torch.max(output3, dim=1)
+            
+            review_texts.extend(texts)
+            predictions.extend([preds1, output2, preds3, output4])
+            prediction_probs.extend([output1, output2, output3, output4])
+    predictions = torch.stack(predictions).cpu()
+    prediction_probs = torch.stack(prediction_probs).cpu()
+    return review_texts, predictions, prediction_probs
+
+def get_predictions1(model, data_loader):
+    model = model.eval()
+    review_texts = []
+    predictions = []
+    prediction_probs = []
     real_values = []
     with torch.no_grad():
         for d in data_loader:
