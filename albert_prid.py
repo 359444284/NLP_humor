@@ -438,7 +438,7 @@ if __name__ == '__main__':
      data1 = next(iter(train_data_loader1))
 
 
-     y_review_texts, y_pred, , y_probs_C, y_probs_R, y_test = get_predictions1(
+     y_review_texts, y_pred, y_probs_C, y_probs_R, y_test = get_predictions1(
        model,
        test_data_loader1
      )
