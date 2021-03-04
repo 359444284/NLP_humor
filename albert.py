@@ -93,27 +93,35 @@ class MyModel(nn.Module):
         # is_humour
         self.tower_1 = nn.Sequential(
             nn.Dropout(p=0.8),
-            nn.Linear(self.model.config.hidden_size, 2),
+            nn.Linear(self.model.config.hidden_size, self.model.config.hidden_size/2),
+            nn.ReLU()
+            nn.Linear(self.model.config.hidden_size/2, 2),
             nn.Softmax(dim=1)
         )
         
         # humor_rating
         self.tower_2 = nn.Sequential(
-            nn.Dropout(p=0.7),
-            nn.Linear(self.model.config.hidden_size, 1)
+            nn.Dropout(p=0.8),
+            nn.Linear(self.model.config.hidden_size, self.model.config.hidden_size/2)
+            nn.ReLU()
+            nn.Linear(self.model.config.hidden_size/2, 1),
         )
         
         # humor_controversy
         self.tower_3 = nn.Sequential(
             nn.Dropout(p=0.8),
-            nn.Linear(self.model.config.hidden_size, 2),
+            nn.Linear(self.model.config.hidden_size, self.model.config.hidden_size/2),
+            nn.ReLU()
+            nn.Linear(self.model.config.hidden_size/2, 2),
             nn.Softmax(dim=1)
         )
         
         # offense_rating
         self.tower_4 = nn.Sequential(
-            nn.Dropout(p=0.7),
-            nn.Linear(self.model.config.hidden_size, 1)
+            nn.Dropout(p=0.8),
+            nn.Linear(self.model.config.hidden_size, self.model.config.hidden_size/2)
+            nn.ReLU()
+            nn.Linear(self.model.config.hidden_size/2, 1),
         )
 
 
@@ -370,7 +378,7 @@ if __name__ == '__main__':
     input_ids = data['input_ids'].to(device)
     attention_mask = data['attention_mask'].to(device)
 
-    optimizer = AdamW(model.parameters(), lr=1e-6, correct_bias=False)
+    optimizer = AdamW(model.parameters(), lr=2e-6, correct_bias=False)
     total_steps = len(train_data_loader) * EPOCHS
 
     scheduler = get_linear_schedule_with_warmup(
