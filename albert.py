@@ -192,10 +192,8 @@ def train_epoch(
 #                          )
         
         loss, log_vars = mtl(output1,
-                                 output2[preds1 == 1],
-                                 output3[preds1 == 1],
-                                 output4,
-                                 [targets[:,0].type(torch.cuda.LongTensor), targets[:,1][preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor), targets[:,3]]
+                             output2[preds1 == 1],
+                             [targets[:,0].type(torch.cuda.LongTensor), targets[:,1][preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor), targets[:,3]]
                              )
 
         correct_predictions1 += torch.sum(preds1 == targets[:,0])
@@ -254,8 +252,6 @@ def eval_model(model, mtl, data_loader, loss_fn_CE, loss_fn_MSE, device, n_examp
         
             loss, log_vars = mtl(output1,
                                      output2[preds1 == 1],
-                                     output3[preds1 == 1],
-                                     output4,
                                      [targets[:,0].type(torch.cuda.LongTensor), targets[:,1][preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor), targets[:,3]]
                                  )
             correct_predictions1 += torch.sum(preds1 == targets[:,0])
@@ -307,7 +303,8 @@ class MultiTaskLossWrapper(nn.Module):
         self.log_vars = nn.Parameter(torch.zeros((task_num)))
         self.loss_function_CE = loss_function_CE
         
-    def forward(self, output1, output2, output3, output4, targets):
+#     def forward(self, output1, output2, output3, output4, targets):
+    def forward(self, output1, output2, targets):
         
 
         precision1 = torch.exp(-2 * self.log_vars[0])
@@ -319,7 +316,7 @@ class MultiTaskLossWrapper(nn.Module):
         
         if output2.numel():
             precision3 = torch.exp(-self.log_vars[2])
-            loss += torch.sum(precision3 * self.loss_function_CE(output3, targets[2]) + self.log_vars[1], -1)
+            loss += torch.sum(precision3 * self.loss_function_CE(output2, targets[2]) + self.log_vars[1], -1)
         
 #         precision4 = torch.exp(-2 * self.log_vars[3])
 #         loss += torch.sum(precision4/2 * (targets[3] - output4) ** 2. + self.log_vars[3], -1)
