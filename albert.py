@@ -251,8 +251,8 @@ def eval_model(model, mtl, data_loader, loss_fn_CE, loss_fn_MSE, device, n_examp
 #                          )
         
             loss, log_vars = mtl(output1,
-                                     output2[preds1 == 1],
-                                     [targets[:,0].type(torch.cuda.LongTensor), targets[:,1][preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor), targets[:,3]]
+                                 output2[preds1 == 1],
+                                 [targets[:,0].type(torch.cuda.LongTensor), targets[:,1][preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor), targets[:,3]]
                                  )
             correct_predictions1 += torch.sum(preds1 == targets[:,0])
             acc1 = correct_predictions1.double() / n_examples
@@ -261,7 +261,7 @@ def eval_model(model, mtl, data_loader, loss_fn_CE, loss_fn_MSE, device, n_examp
 
             losses.append(loss.item())
 #     return acc1, mes1, acc2, mes2, np.mean(losses)
-            return acc1, acc2, np.mean(losses)
+    return acc1, acc2, np.mean(losses)
 
 def get_predictions(model, data_loader):
     model = model.eval()
