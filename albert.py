@@ -315,7 +315,7 @@ class MultiTaskLossWrapper(nn.Module):
 #             loss += torch.sum(precision2/2 * (targets[1] - output2) ** 2. + self.log_vars[1], -1)
         
         if output2.numel():
-            precision3 = torch.exp(-self.log_vars[2])
+            precision3 = torch.exp(-self.log_vars[1])
             loss += torch.sum(precision3 * self.loss_function_CE(output2, targets[2]) + self.log_vars[1], -1)
         
 #         precision4 = torch.exp(-2 * self.log_vars[3])
