@@ -462,7 +462,8 @@ if __name__ == '__main__':
     for epoch in range(EPOCHS):
         print(f'Epoch {epoch + 1}/{EPOCHS}')
         print('-' * 10)
-        train_acc_1, train_mse_1, train_acc_2, train_mse_2, train_loss = train_epoch(
+#         train_acc_1, train_mse_1, train_acc_2, train_mse_2, train_loss = train_epoch(
+        train_acc_1, train_acc_2, train_loss = train_epoch(
             model,
             mtl,
             train_data_loader,
@@ -474,7 +475,8 @@ if __name__ == '__main__':
             len(df_train)
         )
         print(f'Train loss {train_loss} accuracy1 {train_acc_1} accuracy2 {train_acc_2}')
-        val_acc_1, val_mse_1, val_acc_2, val_mse_1, val_loss = eval_model(
+#         val_acc_1, val_mse_1, val_acc_2, val_mse_1, val_loss = eval_model(
+        val_acc_1, val_acc_2, val_loss = eval_model(
             model,
             mtl,
             val_data_loader,
