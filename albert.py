@@ -188,7 +188,7 @@ def train_epoch(
                              output2,
                              output3,
                              output4,
-                             [targets[:,0].type(torch.cuda.LongTensor), targets[:,1], targets[:,2].type(torch.cuda.LongTensor), targets[:,3]]
+                             [targets[:,0].type(torch.cuda.LongTensor), targets[:,1][preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor), targets[:,3]]
                          )
         
 #         loss, log_vars = mtl(output1,
@@ -247,7 +247,7 @@ def eval_model(model, mtl, data_loader, loss_fn_CE, loss_fn_MSE, device, n_examp
                                  output2,
                                  output3,
                                  output4,
-                                 [targets[:,0].type(torch.cuda.LongTensor), targets[:,1], targets[:,2].type(torch.cuda.LongTensor), targets[:,3]]
+                                 [targets[:,0].type(torch.cuda.LongTensor), targets[:,1][preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor), targets[:,3]]
                              )
         
 #             loss, log_vars = mtl(output1,
