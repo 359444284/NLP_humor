@@ -185,8 +185,8 @@ def train_epoch(
 #         _, preds3 = torch.max(output2, dim=1)
 #         [preds1 == 1]
         loss, log_vars = mtl(output1,
-                             output2,
-                             output3,
+                             output2[preds1 == 1],
+                             output3[preds1 == 1],
                              output4,
                              [targets[:,0].type(torch.cuda.LongTensor), targets[:,1][preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor), targets[:,3]]
                          )
@@ -244,8 +244,8 @@ def eval_model(model, mtl, data_loader, loss_fn_CE, loss_fn_MSE, device, n_examp
 #             _, preds3 = torch.max(output2, dim=1)
         
             loss, log_vars = mtl(output1,
-                                 output2,
-                                 output3,
+                                 output2[preds1 == 1],
+                                 output3[preds1 == 1],
                                  output4,
                                  [targets[:,0].type(torch.cuda.LongTensor), targets[:,1][preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor), targets[:,3]]
                              )
