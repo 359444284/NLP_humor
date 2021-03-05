@@ -134,36 +134,32 @@ class MyModel(nn.Module):
         # is_humour
         self.tower_1 = nn.Sequential(
             nn.Dropout(p=0.8),
-            nn.Linear(self.model.config.hidden_size, 512),
-            nn.ReLU(),
-            nn.Linear(512, 2),
+            nn.Linear(self.model.config.hidden_size, 2),
             nn.Softmax(dim=1)
         )
         
-        # humor_rating
-        self.tower_2 = nn.Sequential(
-            nn.Dropout(p=0.8),
-            nn.Linear(self.model.config.hidden_size, 512),
-            nn.ReLU(),
-            nn.Linear(512, 1)
-        )
+#         # humor_rating
+#         self.tower_2 = nn.Sequential(
+#             nn.Dropout(p=0.8),
+#             nn.Linear(self.model.config.hidden_size, 512),
+#             nn.ReLU(),
+#             nn.Linear(512, 1)
+#         )
         
         # humor_controversy
         self.tower_3 = nn.Sequential(
             nn.Dropout(p=0.8),
-            nn.Linear(self.model.config.hidden_size, 512),
-            nn.ReLU(),
-            nn.Linear(512, 2),
+            nn.Linear(self.model.config.hidden_size, 2),
             nn.Softmax(dim=1)
         )
         
-        # offense_rating
-        self.tower_4 = nn.Sequential(
-            nn.Dropout(p=0.8),
-            nn.Linear(self.model.config.hidden_size, 512),
-            nn.ReLU(),
-            nn.Linear(512, 1)
-        )
+#         # offense_rating
+#         self.tower_4 = nn.Sequential(
+#             nn.Dropout(p=0.8),
+#             nn.Linear(self.model.config.hidden_size, 512),
+#             nn.ReLU(),
+#             nn.Linear(512, 1)
+#         )
 
 
     def forward(self, input_ids, attention_mask):
@@ -187,10 +183,11 @@ class MyModel(nn.Module):
 
 
         output1 = self.tower_1(pooled_output)
-        output2 = self.tower_2(pooled_output).clamp(0, 5)
+#         output2 = self.tower_2(pooled_output).clamp(0, 5)
         output3 = self.tower_3(pooled_output)
-        output4 = self.tower_4(pooled_output).clamp(0, 5)
+#         output4 = self.tower_4(pooled_output).clamp(0, 5)
         return output1, output2, output3, output4
+        return output1, output3
 
 
 def train_epoch(
@@ -288,9 +285,9 @@ def get_predictions(model, data_loader):
     review_texts = []
     predictions = []
     p1 = []
-    p2 = []
+#     p2 = []
     p3 = []
-    p4 = []
+#     p4 = []
 #     prediction_probs_C = []
 #     prediction_probs_R = []
     with torch.no_grad():
@@ -298,29 +295,31 @@ def get_predictions(model, data_loader):
             texts = d["review_text"]
             input_ids = d["input_ids"].to(device)
             attention_mask = d["attention_mask"].to(device)
-            output1, output2, output3, output4 = model(
+#             output1, output2, output3, output4 = model(
+            output1, output3= model(
                 input_ids=input_ids,
                 attention_mask=attention_mask
             )
             
-            output2 = output2[:,0]
-            output4 = output4[:,0]
+#             output2 = output2[:,0]
+#             output4 = output4[:,0]
             
             _, preds1 = torch.max(output1, dim=1)
             _, preds3 = torch.max(output3, dim=1)
             
             review_texts.extend(texts)
             p1.extend(preds1)
-            p2.extend(output2)
+#             p2.extend(output2)
             p3.extend(preds3)
-            p4.extend(output4)
+#             p4.extend(output4)
 #             prediction_probs_C.extend([output1, output3])
 #             prediction_probs_R.extend([output2, output4])
     p1 = torch.stack(p1).cpu()
-    p2 = torch.stack(p2).cpu()
+#     p2 = torch.stack(p2).cpu()
     p3 = torch.stack(p3).cpu()
-    p4 = torch.stack(p4).cpu()
-    predictions = [p1,p2,p3,p4]
+#     p4 = torch.stack(p4).cpu()
+#     predictions = [p1,p2,p3,p4]
+    predictions = [p1,p3]
 #     prediction_probs_C = torch.stack(prediction_probs_C).cpu()
 #     prediction_probs_R = torch.stack(prediction_probs_R).cpu()
 #     return review_texts, predictions, prediction_probs_C, prediction_probs_R
@@ -432,13 +431,14 @@ if __name__ == '__main__':
      result = pd.read_csv("./public_test.csv", header=0)
      label_1 = pd.DataFrame({'is_humor':y_pred[0]})
      label_1 = label_1[['is_humor']]
-     label_2 = pd.DataFrame({'humor_rating':y_pred[1]})
-     label_2 = label_2[['humor_rating']]
-     label_3 = pd.DataFrame({'humor_controversy':y_pred[2]})
+#      label_2 = pd.DataFrame({'humor_rating':y_pred[1]})
+#      label_2 = label_2[['humor_rating']]
+     label_3 = pd.DataFrame({'humor_controversy':y_pred[1]})
      label_3 = label_3[['humor_controversy']]
-     label_4 = pd.DataFrame({'offense_rating':y_pred[3]})
-     label_4 = label_4[['offense_rating']]
-     result = pd.concat([result,label_1,label_2,label_3,label_4],axis=1)
+#      label_4 = pd.DataFrame({'offense_rating':y_pred[3]})
+#      label_4 = label_4[['offense_rating']]
+#      result = pd.concat([result,label_1,label_2,label_3,label_4],axis=1)
+     result = pd.concat([result,label_1],axis=1)
      print(result)
      result.to_csv("task1a.csv")
 
