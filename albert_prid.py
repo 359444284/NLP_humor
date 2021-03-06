@@ -315,7 +315,7 @@ def get_predictions(model, data_loader):
     p3 = torch.stack(p3).cpu()
     p4 = torch.stack(p4).cpu()
     predictions = [p1,p2,p3,p4]
-    predictions = [p1,p3]
+#     predictions = [p1,p3]
 #     prediction_probs_C = torch.stack(prediction_probs_C).cpu()
 #     prediction_probs_R = torch.stack(prediction_probs_R).cpu()
 #     return review_texts, predictions, prediction_probs_C, prediction_probs_R
