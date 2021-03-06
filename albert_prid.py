@@ -284,8 +284,8 @@ def get_predictions(model, data_loader):
     p2 = []
     p3 = []
     p4 = []
-    prediction_probs_C = []
-    prediction_probs_R = []
+#     prediction_probs_C = []
+#     prediction_probs_R = []
     with torch.no_grad():
         for d in data_loader:
             texts = d["review_text"]
@@ -308,18 +308,18 @@ def get_predictions(model, data_loader):
             p2.extend(output2)
             p3.extend(preds3)
             p4.extend(output4)
-            prediction_probs_C.extend([output1, output3])
-            prediction_probs_R.extend([output2, output4])
+#             prediction_probs_C.extend([output1, output3])
+#             prediction_probs_R.extend([output2, output4])
     p1 = torch.stack(p1).cpu()
     p2 = torch.stack(p2).cpu()
     p3 = torch.stack(p3).cpu()
     p4 = torch.stack(p4).cpu()
     predictions = [p1,p2,p3,p4]
     predictions = [p1,p3]
-    prediction_probs_C = torch.stack(prediction_probs_C).cpu()
-    prediction_probs_R = torch.stack(prediction_probs_R).cpu()
-    return review_texts, predictions, prediction_probs_C, prediction_probs_R
-#     return review_texts, predictions
+#     prediction_probs_C = torch.stack(prediction_probs_C).cpu()
+#     prediction_probs_R = torch.stack(prediction_probs_R).cpu()
+#     return review_texts, predictions, prediction_probs_C, prediction_probs_R
+    return review_texts, predictions
 
 def get_predictions1(model, data_loader):
     model = model.eval()
@@ -420,8 +420,8 @@ if __name__ == '__main__':
      mtl = MultiTaskLossWrapper(4,loss_fn_CE).to(device)
 
      y_review_texts, y_pred= get_predictions(
-     model,
-     test_data_loader
+          model,
+          test_data_loader
      )
 
      result = pd.read_csv("./public_test.csv", header=0)
