@@ -427,14 +427,14 @@ if __name__ == '__main__':
      result = pd.read_csv("./public_test.csv", header=0)
      label_1 = pd.DataFrame({'is_humor':y_pred[0]})
      label_1 = label_1[['is_humor']]
-#      label_2 = pd.DataFrame({'humor_rating':y_pred[1]})
-#      label_2 = label_2[['humor_rating']]
-     label_3 = pd.DataFrame({'humor_controversy':y_pred[1]})
+     label_2 = pd.DataFrame({'humor_rating':y_pred[1]})
+     label_2 = label_2[['humor_rating']]
+     label_3 = pd.DataFrame({'humor_controversy':y_pred[2]})
      label_3 = label_3[['humor_controversy']]
-#      label_4 = pd.DataFrame({'offense_rating':y_pred[3]})
-#      label_4 = label_4[['offense_rating']]
-#      result = pd.concat([result,label_1,label_2,label_3,label_4],axis=1)
-     result = pd.concat([result,label_1],axis=1)
+     label_4 = pd.DataFrame({'offense_rating':y_pred[3]})
+     label_4 = label_4[['offense_rating']]
+     result = pd.concat([result,label_1,label_2,label_3,label_4],axis=1)
+#      result = pd.concat([result,label_1],axis=1)
      print(result)
      result.to_csv("task1a.csv")
 
