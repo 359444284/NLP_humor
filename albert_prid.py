@@ -319,7 +319,7 @@ def get_predictions(model, data_loader):
     prediction_probs_C = torch.stack(prediction_probs_C).cpu()
     prediction_probs_R = torch.stack(prediction_probs_R).cpu()
     return review_texts, predictions, prediction_probs_C, prediction_probs_R
-    return review_texts, predictions
+#     return review_texts, predictions
 
 def get_predictions1(model, data_loader):
     model = model.eval()
