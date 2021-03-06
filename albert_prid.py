@@ -138,13 +138,11 @@ class MyModel(nn.Module):
             nn.Softmax(dim=1)
         )
         
-#         # humor_rating
-#         self.tower_2 = nn.Sequential(
-#             nn.Dropout(p=0.8),
-#             nn.Linear(self.model.config.hidden_size, 512),
-#             nn.ReLU(),
-#             nn.Linear(512, 1)
-#         )
+        # humor_rating
+        self.tower_2 = nn.Sequential(
+            nn.Dropout(p=0.8),
+            nn.Linear(self.model.config.hidden_size, 1)
+        )
         
         # humor_controversy
         self.tower_3 = nn.Sequential(
@@ -153,13 +151,11 @@ class MyModel(nn.Module):
             nn.Softmax(dim=1)
         )
         
-#         # offense_rating
-#         self.tower_4 = nn.Sequential(
-#             nn.Dropout(p=0.8),
-#             nn.Linear(self.model.config.hidden_size, 512),
-#             nn.ReLU(),
-#             nn.Linear(512, 1)
-#         )
+        # offense_rating
+        self.tower_4 = nn.Sequential(
+            nn.Dropout(p=0.8),
+            nn.Linear(self.model.config.hidden_size, 1)
+        )
 
 
     def forward(self, input_ids, attention_mask):
@@ -183,11 +179,11 @@ class MyModel(nn.Module):
 
 
         output1 = self.tower_1(pooled_output)
-#         output2 = self.tower_2(pooled_output).clamp(0, 5)
+        output2 = self.tower_2(pooled_output).clamp(0, 5)
         output3 = self.tower_3(pooled_output)
-#         output4 = self.tower_4(pooled_output).clamp(0, 5)
-#         return output1, output2, output3, output4
-        return output1, output3
+        output4 = self.tower_4(pooled_output).clamp(0, 5)
+        return output1, output2, output3, output4
+#         return output1, output3
 
 
 def train_epoch(
@@ -285,44 +281,44 @@ def get_predictions(model, data_loader):
     review_texts = []
     predictions = []
     p1 = []
-#     p2 = []
+    p2 = []
     p3 = []
-#     p4 = []
-#     prediction_probs_C = []
-#     prediction_probs_R = []
+    p4 = []
+    prediction_probs_C = []
+    prediction_probs_R = []
     with torch.no_grad():
         for d in data_loader:
             texts = d["review_text"]
             input_ids = d["input_ids"].to(device)
             attention_mask = d["attention_mask"].to(device)
-#             output1, output2, output3, output4 = model(
-            output1, output3= model(
+            output1, output2, output3, output4 = model(
+#             output1, output3= model(
                 input_ids=input_ids,
                 attention_mask=attention_mask
             )
             
-#             output2 = output2[:,0]
-#             output4 = output4[:,0]
+            output2 = output2[:,0]
+            output4 = output4[:,0]
             
             _, preds1 = torch.max(output1, dim=1)
             _, preds3 = torch.max(output3, dim=1)
             
             review_texts.extend(texts)
             p1.extend(preds1)
-#             p2.extend(output2)
+            p2.extend(output2)
             p3.extend(preds3)
-#             p4.extend(output4)
-#             prediction_probs_C.extend([output1, output3])
-#             prediction_probs_R.extend([output2, output4])
+            p4.extend(output4)
+            prediction_probs_C.extend([output1, output3])
+            prediction_probs_R.extend([output2, output4])
     p1 = torch.stack(p1).cpu()
-#     p2 = torch.stack(p2).cpu()
+    p2 = torch.stack(p2).cpu()
     p3 = torch.stack(p3).cpu()
-#     p4 = torch.stack(p4).cpu()
-#     predictions = [p1,p2,p3,p4]
+    p4 = torch.stack(p4).cpu()
+    predictions = [p1,p2,p3,p4]
     predictions = [p1,p3]
-#     prediction_probs_C = torch.stack(prediction_probs_C).cpu()
-#     prediction_probs_R = torch.stack(prediction_probs_R).cpu()
-#     return review_texts, predictions, prediction_probs_C, prediction_probs_R
+    prediction_probs_C = torch.stack(prediction_probs_C).cpu()
+    prediction_probs_R = torch.stack(prediction_probs_R).cpu()
+    return review_texts, predictions, prediction_probs_C, prediction_probs_R
     return review_texts, predictions
 
 def get_predictions1(model, data_loader):
@@ -376,7 +372,7 @@ class MultiTaskLossWrapper(nn.Module):
         
 
         precision1 = torch.exp(-2 * self.log_vars[0])
-        loss = torch.sum(precision1 * self.loss_function_CE(output1, targets[0]) + self.log_vars[0], -1)
+        loss = torch.sum(precision1/2 * self.loss_function_CE(output1, targets[0]) + self.log_vars[0], -1)
         
         if output2.numel():
             precision2 = torch.exp(-2 * self.log_vars[1])
@@ -384,7 +380,7 @@ class MultiTaskLossWrapper(nn.Module):
         
         if output2.numel():
             precision3 = torch.exp(-self.log_vars[2])
-            loss += torch.sum(precision3 * self.loss_function_CE(output3, targets[2]) + self.log_vars[2], -1)
+            loss += torch.sum(precision3/2 * self.loss_function_CE(output3, targets[2]) + self.log_vars[2], -1)
         
         precision4 = torch.exp(-2 * self.log_vars[3])
         loss += torch.sum(precision4/2 * (targets[3] - output4) ** 2. + self.log_vars[3], -1)
