@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 RANDOM_SEED = 70
 BATCH_SIZE = 8
 MAX_LEN = 150
-EPOCHS = 20
+EPOCHS = 10
 torch.cuda.current_device()
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
@@ -199,7 +199,7 @@ def train_epoch(
             loss2 = loss_fn_MSE(output2[preds1 == 1], targets[:,1][preds1 == 1])
             
             loss3 = loss_fn_CE(output3[preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor))
-            loss += 0.45*loss2 + 0.05*loss3
+            loss += 0.05*loss2 + 0.45*loss3
             loss = loss
         else:
             loss = loss
@@ -274,7 +274,7 @@ def eval_model(model, mtl, data_loader, loss_fn_CE, loss_fn_MSE, device, n_examp
                 loss2 = loss_fn_MSE(output2[preds1 == 1], targets[:,1][preds1 == 1])
 
                 loss3 = loss_fn_CE(output3[preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor))
-                loss += 0.45*loss2 + 0.05*loss3
+                loss += 0.05*loss2 + 0.45*loss3
                 loss = loss
             else:
                 loss = loss
