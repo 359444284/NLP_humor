@@ -193,7 +193,7 @@ def train_epoch(
         loss = 0
         loss1 = loss_fn_CE(output1, targets[:,0].type(torch.cuda.LongTensor))
         loss4 = loss_fn_MSE(output4, targets[:,3])
-        loss += 0.85*loss1 + 0.05*loss4
+        loss += 0.45*loss1 + 0.45*loss4
         if output2[preds1 == 1].numel():
             
             loss2 = loss_fn_MSE(output2[preds1 == 1], targets[:,1][preds1 == 1])
@@ -268,7 +268,7 @@ def eval_model(model, mtl, data_loader, loss_fn_CE, loss_fn_MSE, device, n_examp
             loss = 0
             loss1 = loss_fn_CE(output1, targets[:,0].type(torch.cuda.LongTensor))
             loss4 = loss_fn_MSE(output4, targets[:,3])
-            loss += 0.85*loss1 + 0.05*loss4
+            loss += 0.45*loss1 + 0.45*loss4
             if output2[preds1 == 1].numel():
 
                 loss2 = loss_fn_MSE(output2[preds1 == 1], targets[:,1][preds1 == 1])
