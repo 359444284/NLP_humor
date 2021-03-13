@@ -184,25 +184,25 @@ def train_epoch(
 #         _, preds1 = torch.max(output1, dim=1)
 #         _, preds3 = torch.max(output2, dim=1)
 
-#         loss, log_vars = mtl(output1,
-#                              output2[preds1 == 1],
-#                              output3[preds1 == 1],
-#                              output4,
-#                              [targets[:,0].type(torch.cuda.LongTensor), targets[:,1][preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor), targets[:,3]]
-#                          )
-        loss = 0
-        loss1 = loss_fn_CE(output1, targets[:,0].type(torch.cuda.LongTensor))
-        loss4 = loss_fn_MSE(output4, targets[:,3])
-        loss += 1.00*loss1 + 0.00*loss4
-        if output2[preds1 == 1].numel():
+        loss, log_vars = mtl(output1,
+                             output2[preds1 == 1],
+                             output3[preds1 == 1],
+                             output4,
+                             [targets[:,0].type(torch.cuda.LongTensor), targets[:,1][preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor), targets[:,3]]
+                         )
+#         loss = 0
+#         loss1 = loss_fn_CE(output1, targets[:,0].type(torch.cuda.LongTensor))
+#         loss4 = loss_fn_MSE(output4, targets[:,3])
+#         loss += 1.00*loss1 + 0.00*loss4
+#         if output2[preds1 == 1].numel():
             
-            loss2 = loss_fn_MSE(output2[preds1 == 1], targets[:,1][preds1 == 1])
+#             loss2 = loss_fn_MSE(output2[preds1 == 1], targets[:,1][preds1 == 1])
             
-            loss3 = loss_fn_CE(output3[preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor))
-            loss += 0.00*loss2 + 0.00*loss3
-            loss = loss
-        else:
-            loss = loss
+#             loss3 = loss_fn_CE(output3[preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor))
+#             loss += 0.00*loss2 + 0.00*loss3
+#             loss = loss
+#         else:
+#             loss = loss
         
         
         
@@ -259,25 +259,25 @@ def eval_model(model, mtl, data_loader, loss_fn_CE, loss_fn_MSE, device, n_examp
 #             _, preds1 = torch.max(output1, dim=1)
 #             _, preds3 = torch.max(output2, dim=1)
         
-#             loss, log_vars = mtl(output1,
-#                                  output2[preds1 == 1],
-#                                  output3[preds1 == 1],
-#                                  output4,
-#                                  [targets[:,0].type(torch.cuda.LongTensor), targets[:,1][preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor), targets[:,3]]
-#                              )
-            loss = 0
-            loss1 = loss_fn_CE(output1, targets[:,0].type(torch.cuda.LongTensor))
-            loss4 = loss_fn_MSE(output4, targets[:,3])
-            loss += 1.00*loss1 + 0.00*loss4
-            if output2[preds1 == 1].numel():
+            loss, log_vars = mtl(output1,
+                                 output2[preds1 == 1],
+                                 output3[preds1 == 1],
+                                 output4,
+                                 [targets[:,0].type(torch.cuda.LongTensor), targets[:,1][preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor), targets[:,3]]
+                             )
+#             loss = 0
+#             loss1 = loss_fn_CE(output1, targets[:,0].type(torch.cuda.LongTensor))
+#             loss4 = loss_fn_MSE(output4, targets[:,3])
+#             loss += 1.00*loss1 + 0.00*loss4
+#             if output2[preds1 == 1].numel():
 
-                loss2 = loss_fn_MSE(output2[preds1 == 1], targets[:,1][preds1 == 1])
+#                 loss2 = loss_fn_MSE(output2[preds1 == 1], targets[:,1][preds1 == 1])
 
-                loss3 = loss_fn_CE(output3[preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor))
-                loss += 0.00*loss2 + 0.00*loss3
-                loss = loss
-            else:
-                loss = loss
+#                 loss3 = loss_fn_CE(output3[preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor))
+#                 loss += 0.00*loss2 + 0.00*loss3
+#                 loss = loss
+#             else:
+#                 loss = loss
         
 #             loss, log_vars = mtl(output1,
 #                                  output2[preds1 == 1],
@@ -343,9 +343,9 @@ class MultiTaskLossWrapper(nn.Module):
             precision2 = torch.exp(-2 * self.log_vars[1])
             loss += torch.sum(precision2/2 * (targets[1] - output2) ** 2. + self.log_vars[1], -1)
         
-        if output2.numel():
-            precision3 = torch.exp(-self.log_vars[1])
-            loss += torch.sum(precision3/2 * self.loss_function_CE(output3, targets[2]) + self.log_vars[2], -1)
+#         if output2.numel():
+#             precision3 = torch.exp(-self.log_vars[1])
+#             loss += torch.sum(precision3/2 * self.loss_function_CE(output3, targets[2]) + self.log_vars[2], -1)
         
         precision4 = torch.exp(-2 * self.log_vars[3])
         loss += torch.sum(precision4/2 * (targets[3] - output4) ** 2. + self.log_vars[3], -1)
