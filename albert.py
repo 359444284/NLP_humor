@@ -227,7 +227,7 @@ def train_epoch(
         scheduler.step()
         optimizer.zero_grad()
 #     return acc1, mes1, acc2, mes2, np.mean(losses)
-    return acc1 np.mean(losses)
+    return acc1, np.mean(losses)
 
 
 def eval_model(model, mtl, data_loader, loss_fn_CE, loss_fn_MSE, device, n_examples):
