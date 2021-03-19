@@ -142,7 +142,7 @@ class MyModel(nn.Module):
         output3 = self.tower_3(pooled_output)
 #         output4 = self.tower_4(pooled_output).clamp(0, 5)
 #         return output1, output2, output3, output4
-        return output1
+        return output3
 
 def train_epoch(
     model,
