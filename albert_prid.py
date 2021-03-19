@@ -15,9 +15,9 @@ import matplotlib as plt
 RANDOM_SEED = 778
 BATCH_SIZE = 8
 MAX_LEN = 150
-EPOCHS = 30
+EPOCHS = 20
 torch.cuda.current_device()
-device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+device = torch.device('cuda:1' if torch.cuda.is_available() else 'cpu')
 
 
 def set_seed(seed):
@@ -178,12 +178,12 @@ class MyModel(nn.Module):
         #pooled_output = outputs[1]
 
 
-        output1 = self.tower_1(pooled_output)
-        output2 = self.tower_2(pooled_output).clamp(0, 5)
+#         output1 = self.tower_1(pooled_output)
+#         output2 = self.tower_2(pooled_output).clamp(0, 5)
         output3 = self.tower_3(pooled_output)
-        output4 = self.tower_4(pooled_output).clamp(0, 5)
-        return output1, output2, output3, output4
-#         return output1
+#         output4 = self.tower_4(pooled_output).clamp(0, 5)
+#         return output1, output2, output3, output4
+        return output3
 
 
 def train_epoch(
@@ -291,31 +291,31 @@ def get_predictions(model, data_loader):
             texts = d["review_text"]
             input_ids = d["input_ids"].to(device)
             attention_mask = d["attention_mask"].to(device)
-            output1, output2, output3, output4 = model(
-#             output1 = model(
+#             output1, output2, output3, output4 = model(
+            output1 = model(
                 input_ids=input_ids,
                 attention_mask=attention_mask
             )
             
-            output2 = output2[:,0]
-            output4 = output4[:,0]
+#             output2 = output2[:,0]
+#             output4 = output4[:,0]
             
             _, preds1 = torch.max(output1, dim=1)
 #             _, preds3 = torch.max(output3, dim=1)
             
             review_texts.extend(texts)
             p1.extend(preds1)
-            p2.extend(output2)
-            p3.extend(preds3)
-            p4.extend(output4)
+#             p2.extend(output2)
+#             p3.extend(preds3)
+#             p4.extend(output4)
 #             prediction_probs_C.extend([output1, output3])
 #             prediction_probs_R.extend([output2, output4])
     p1 = torch.stack(p1).cpu()
-    p2 = torch.stack(p2).cpu()
-    p3 = torch.stack(p3).cpu()
-    p4 = torch.stack(p4).cpu()
-    predictions = [p1,p2,p3,p4]
-#     predictions = [p1]
+#     p2 = torch.stack(p2).cpu()
+#     p3 = torch.stack(p3).cpu()
+#     p4 = torch.stack(p4).cpu()
+#     predictions = [p1,p2,p3,p4]
+    predictions = [p1]
 #     prediction_probs_C = torch.stack(prediction_probs_C).cpu()
 #     prediction_probs_R = torch.stack(prediction_probs_R).cpu()
 #     return review_texts, predictions, prediction_probs_C, prediction_probs_R
@@ -406,7 +406,7 @@ if __name__ == '__main__':
 
      model = MyModel()
      if torch.cuda.device_count()>1:
-          model=nn.DataParallel(model,device_ids=[0,1,2])
+          model=nn.DataParallel(model,device_ids=[1,2])
 
 
      model.load_state_dict(torch.load('./best_model_state.bin'))
@@ -427,14 +427,14 @@ if __name__ == '__main__':
      result = pd.read_csv("./public_test.csv", header=0)
      label_1 = pd.DataFrame({'is_humor':y_pred[0]})
      label_1 = label_1[['is_humor']]
-     label_2 = pd.DataFrame({'humor_rating':y_pred[1]})
-     label_2 = label_2[['humor_rating']]
-     label_3 = pd.DataFrame({'humor_controversy':y_pred[2]})
-     label_3 = label_3[['humor_controversy']]
-     label_4 = pd.DataFrame({'offense_rating':y_pred[3]})
-     label_4 = label_4[['offense_rating']]
-     result = pd.concat([result,label_1,label_2,label_3,label_4],axis=1)
-#      result = pd.concat([result,label_1],axis=1)
+#      label_2 = pd.DataFrame({'humor_rating':y_pred[1]})
+#      label_2 = label_2[['humor_rating']]
+#      label_3 = pd.DataFrame({'humor_controversy':y_pred[2]})
+#      label_3 = label_3[['humor_controversy']]
+#      label_4 = pd.DataFrame({'offense_rating':y_pred[3]})
+#      label_4 = label_4[['offense_rating']]
+#      result = pd.concat([result,label_1,label_2,label_3,label_4],axis=1)
+     result = pd.concat([result,label_1],axis=1)
      print(result)
      result.to_csv("task1a.csv")
 
