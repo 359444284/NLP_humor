@@ -137,9 +137,9 @@ class MyModel(nn.Module):
         #pooled_output = outputs[1]
 
 
-        output1 = self.tower_1(pooled_output)
+#         output1 = self.tower_1(pooled_output)
 #         output2 = self.tower_2(pooled_output).clamp(0, 5)
-#         output3 = self.tower_3(pooled_output)
+        output3 = self.tower_3(pooled_output)
 #         output4 = self.tower_4(pooled_output).clamp(0, 5)
 #         return output1, output2, output3, output4
         return output1
@@ -192,7 +192,7 @@ def train_epoch(
 #                              [targets[:,0].type(torch.cuda.LongTensor), targets[:,1][preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor), targets[:,3]]
 #                          )
 #         loss = 0
-        loss = loss_fn_CE(output1, targets[:,0].type(torch.cuda.LongTensor))
+        loss = loss_fn_CE(output1, targets[:,2].type(torch.cuda.LongTensor))
 #         loss1 = loss_fn_CE(output1, targets[:,0].type(torch.cuda.LongTensor))
 #         loss4 = loss_fn_MSE(output4, targets[:,3])
 #         loss += 0.80*loss1 + 0.075*loss4
@@ -214,7 +214,7 @@ def train_epoch(
 #                              [targets[:,0].type(torch.cuda.LongTensor), targets[:,1][preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor), targets[:,3]]
 #                              )
 
-        correct_predictions1 += torch.sum(preds1 == targets[:,0])
+        correct_predictions1 += torch.sum(preds1 == targets[:,2])
         acc1 = correct_predictions1.double() / n_examples
 #         correct_predictions2 += torch.sum(preds3 == targets[:,2])
 #         acc2 = correct_predictions2.double() / n_examples
@@ -269,7 +269,7 @@ def eval_model(model, mtl, data_loader, loss_fn_CE, loss_fn_MSE, device, n_examp
 #                                  [targets[:,0].type(torch.cuda.LongTensor), targets[:,1][preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor), targets[:,3]]
 #                              )
 #             loss = 0
-            loss = loss_fn_CE(output1, targets[:,0].type(torch.cuda.LongTensor))
+            loss = loss_fn_CE(output1, targets[:,2].type(torch.cuda.LongTensor))
 #             loss1 = loss_fn_CE(output1, targets[:,0].type(torch.cuda.LongTensor))
 #             loss4 = loss_fn_MSE(output4, targets[:,3])
 #             loss += 0.80*loss1 + 0.075*loss4
@@ -287,7 +287,7 @@ def eval_model(model, mtl, data_loader, loss_fn_CE, loss_fn_MSE, device, n_examp
 #                                  output2[preds1 == 1],
 #                                  [targets[:,0].type(torch.cuda.LongTensor), targets[:,1][preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor), targets[:,3]]
 #                                  )
-            correct_predictions1 += torch.sum(preds1 == targets[:,0])
+            correct_predictions1 += torch.sum(preds1 == targets[:,2])
             acc1 = correct_predictions1.double() / n_examples
 #             correct_predictions2 += torch.sum(preds3 == targets[:,2])
 #             acc2 = correct_predictions2.double() / n_examples
