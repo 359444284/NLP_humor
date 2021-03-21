@@ -214,7 +214,7 @@ def train_epoch(
 #                              [targets[:,0].type(torch.cuda.LongTensor), targets[:,1][preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor), targets[:,3]]
 #                              )
 
-        correct_predictions1 += torch.sum(preds1 == targets[:,2])
+        correct_predictions1 += torch.sum(preds1 == targets[:,0])
         acc1 = correct_predictions1.double() / n_examples
         correct_predictions2 += torch.sum(preds3 == targets[:,2])
         acc2 = correct_predictions2.double() / n_examples
@@ -287,7 +287,7 @@ def eval_model(model, mtl, data_loader, loss_fn_CE, loss_fn_MSE, device, n_examp
 #                                  output2[preds1 == 1],
 #                                  [targets[:,0].type(torch.cuda.LongTensor), targets[:,1][preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor), targets[:,3]]
 #                                  )
-            correct_predictions1 += torch.sum(preds1 == targets[:,2])
+            correct_predictions1 += torch.sum(preds1 == targets[:,0])
             acc1 = correct_predictions1.double() / n_examples
             correct_predictions2 += torch.sum(preds3 == targets[:,2])
             acc2 = correct_predictions2.double() / n_examples
