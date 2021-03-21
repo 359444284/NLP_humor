@@ -88,7 +88,7 @@ class MyModel(nn.Module):
         self.pooler = nn.Linear(self.model.config.hidden_size, self.model.config.hidden_size)
         self.pooler_activation = nn.Tanh()
         self.nn_dense = nn.Linear(self.model.config.hidden_size, 1)
-        self.truncated_normal_(layer1.weight)
+        self.truncated_normal_(self.nn_dense.weight)
 #         self.act = nn.ReLU()
 
         # is_humour
