@@ -88,7 +88,8 @@ class MyModel(nn.Module):
         self.pooler = nn.Linear(self.model.config.hidden_size, self.model.config.hidden_size)
         self.pooler_activation = nn.Tanh()
         self.nn_dense = nn.Linear(self.model.config.hidden_size, 1)
-        self.act = nn.ReLU()
+        self.truncated_normal_(layer1.weight)
+#         self.act = nn.ReLU()
 
         # is_humour
         self.tower_1 = nn.Sequential(
@@ -115,6 +116,16 @@ class MyModel(nn.Module):
             nn.Dropout(p=0.8),
             nn.Linear(self.model.config.hidden_size, 1)
         )
+      
+    def truncated_normal_(self,tensor,mean=0,std=0.02):
+        with torch.no_grad():
+            size = tensor.shape
+            tmp = tensor.new_empty(size+(4,)).normal_()
+            valid = (tmp < 2) & (tmp > -2)
+            ind = valid.max(-1, keepdim=True)[1]
+            tensor.data.copy_(tmp.gather(-1, ind).squeeze(-1))
+            tensor.data.mul_(std).add_(mean)
+            return tensor
 
 
     def forward(self, input_ids, attention_mask):
@@ -123,13 +134,14 @@ class MyModel(nn.Module):
             attention_mask=attention_mask
         )
         layer_logits = []
-        for layer in outputs[2]:
+        for layer in outputs[2][1:]:
             out = self.nn_dense(layer)
-            layer_logits.append(self.act(out))
+#             layer_logits.append(self.act(out))
+            layer_logits.append(out)
 
         layer_logits = torch.cat(layer_logits, axis=2)
         layer_dist = self.softmax_all_layer(layer_logits)
-        seq_out = torch.cat([torch.unsqueeze(x, axis=2) for x in outputs[2]], axis=2)
+        seq_out = torch.cat([torch.unsqueeze(x, axis=2) for x in outputs[2][1:]], axis=2)
         pooled_output = torch.matmul(torch.unsqueeze(layer_dist, axis=2), seq_out)
         pooled_output = torch.squeeze(pooled_output, axis=2)
 
@@ -143,6 +155,8 @@ class MyModel(nn.Module):
         output4 = self.tower_4(pooled_output).clamp(0, 5)
         return output1, output2, output3, output4
 #         return output3
+
+
 
 def train_epoch(
     model,
