@@ -89,7 +89,7 @@ class MyModel(nn.Module):
         self.pooler_activation = nn.Tanh()
         self.nn_dense = nn.Linear(self.model.config.hidden_size, 1)
         self.truncated_normal_(self.nn_dense.weight)
-#         self.act = nn.ReLU()
+        self.act = nn.ReLU()
 
         # is_humour
         self.tower_1 = nn.Sequential(
@@ -136,7 +136,7 @@ class MyModel(nn.Module):
         layer_logits = []
         for layer in outputs[2][1:]:
             out = self.nn_dense(layer)
-#             layer_logits.append(self.act(out))
+            layer_logits.append(self.act(out))
             layer_logits.append(out)
 
         layer_logits = torch.cat(layer_logits, axis=2)
