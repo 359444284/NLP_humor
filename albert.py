@@ -11,11 +11,11 @@ from collections import defaultdict
 import pandas as pd
 import random
 import matplotlib.pyplot as plt
-
+# 70
 RANDOM_SEED = 70
 BATCH_SIZE = 8
 MAX_LEN = 150
-EPOCHS = 10
+EPOCHS = 15
 torch.cuda.current_device()
 device = torch.device('cuda:1' if torch.cuda.is_available() else 'cpu')
 
@@ -505,7 +505,8 @@ if __name__ == '__main__':
 
 
     history = defaultdict(list)
-    best_accuracy = 0
+    best_accuracy_1 = 0
+    best_accuracy_2 = 0
     for epoch in range(EPOCHS):
         print(f'Epoch {epoch + 1}/{EPOCHS}')
         print('-' * 10)
@@ -542,10 +543,16 @@ if __name__ == '__main__':
         history['val_acc_1'].append(val_acc_1)
         history['val_acc_2'].append(val_acc_2)
         history['val_loss'].append(val_loss)
-        mean_acc = val_acc_1
-        if mean_acc > best_accuracy:
+
+        if val_acc_1 > best_accuracy_1:
             torch.save(model.state_dict(), 'best_model_state.bin')
-            best_accuracy = mean_acc
+            best_accuracy_1 = val_acc_1
+            best_accuracy_2 = val_acc_2
+        elif val_acc_1 == best_accuracy_1:
+            if val_acc_2 > best_accuracy_2:
+                torch.save(model.state_dict(), 'best_model_state.bin')
+                best_accuracy_1 = val_acc_1
+                best_accuracy_2 = val_acc_2
 
 
 
