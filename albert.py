@@ -133,19 +133,19 @@ class MyModel(nn.Module):
             input_ids=input_ids,
             attention_mask=attention_mask
         )
-#         layer_logits = []
-#         for layer in outputs[2][1:]:
-#             out = self.nn_dense(layer)
-# #             layer_logits.append(self.act(out))
-#             layer_logits.append(out)
+        layer_logits = []
+        for layer in outputs[2][1:]:
+            out = self.nn_dense(layer)
+#             layer_logits.append(self.act(out))
+            layer_logits.append(out)
 
-#         layer_logits = torch.cat(layer_logits, axis=2)
-#         layer_dist = self.softmax_all_layer(layer_logits)
-#         seq_out = torch.cat([torch.unsqueeze(x, axis=2) for x in outputs[2][1:]], axis=2)
-#         pooled_output = torch.matmul(torch.unsqueeze(layer_dist, axis=2), seq_out)
-#         pooled_output = torch.squeeze(pooled_output, axis=2)
+        layer_logits = torch.cat(layer_logits, axis=2)
+        layer_dist = self.softmax_all_layer(layer_logits)
+        seq_out = torch.cat([torch.unsqueeze(x, axis=2) for x in outputs[2][1:]], axis=2)
+        pooled_output = torch.matmul(torch.unsqueeze(layer_dist, axis=2), seq_out)
+        pooled_output = torch.squeeze(pooled_output, axis=2)
 
-#         pooled_output = self.pooler_activation(self.pooler(pooled_output[:, 0])) if self.pooler is not None else None
+        pooled_output = self.pooler_activation(self.pooler(pooled_output[:, 0])) if self.pooler is not None else None
         pooled_output = outputs[1]
 
 
@@ -215,7 +215,7 @@ def train_epoch(
             loss2 = loss_fn_MSE(output2[preds1 == 1], targets[:,1][preds1 == 1])
             
             loss3 = loss_fn_CE(output3[preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor))
-            loss += 0.05*loss2 + 0.00*loss3
+            loss += 0.05*loss2 + 0.05*loss3
             loss = loss
         else:
             loss = loss
