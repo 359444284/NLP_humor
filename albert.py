@@ -89,7 +89,7 @@ class MyModel(nn.Module):
         self.pooler_activation = nn.Tanh()
         self.nn_dense = nn.Linear(self.model.config.hidden_size, 1)
         self.truncated_normal_(self.nn_dense.weight)
-#         self.act = nn.ReLU()
+        self.act = nn.ReLU()
 
         # is_humour
         self.tower_1 = nn.Sequential(
@@ -136,8 +136,8 @@ class MyModel(nn.Module):
         layer_logits = []
         for layer in outputs[2][1:]:
             out = self.nn_dense(layer)
-#             layer_logits.append(self.act(out))
-            layer_logits.append(out)
+            layer_logits.append(self.act(out))
+#             layer_logits.append(out)
 
         layer_logits = torch.cat(layer_logits, axis=2)
         layer_dist = self.softmax_all_layer(layer_logits)
@@ -209,13 +209,13 @@ def train_epoch(
 #         loss = loss_fn_CE(output1, targets[:,2].type(torch.cuda.LongTensor))
         loss1 = loss_fn_CE(output1, targets[:,0].type(torch.cuda.LongTensor))
         loss4 = loss_fn_MSE(output4, targets[:,3])
-        loss += 0.90*loss1 + 0.05*loss4
+        loss += 0.90*loss1 + 0.07*loss4
         if output2[preds1 == 1].numel():
             
             loss2 = loss_fn_MSE(output2[preds1 == 1], targets[:,1][preds1 == 1])
             
             loss3 = loss_fn_CE(output3[preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor))
-            loss += 0.05*loss2 + 0.05*loss3
+            loss += 0.03*loss2 + 0.00*loss3
             loss = loss
         else:
             loss = loss
@@ -286,13 +286,13 @@ def eval_model(model, mtl, data_loader, loss_fn_CE, loss_fn_MSE, device, n_examp
 #             loss = loss_fn_CE(output1, targets[:,2].type(torch.cuda.LongTensor))
             loss1 = loss_fn_CE(output1, targets[:,0].type(torch.cuda.LongTensor))
             loss4 = loss_fn_MSE(output4, targets[:,3])
-            loss += 0.90*loss1 + 0.05*loss4
+            loss += 0.90*loss1 + 0.07*loss4
             if output2[preds1 == 1].numel():
 
                 loss2 = loss_fn_MSE(output2[preds1 == 1], targets[:,1][preds1 == 1])
 
                 loss3 = loss_fn_CE(output3[preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor))
-                loss += 0.05*loss2 + 0.05*loss3
+                loss += 0.03*loss2 + 0.00*loss3
                 loss = loss
             else:
                 loss = loss
