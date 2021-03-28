@@ -191,7 +191,7 @@ class MyModel(nn.Module):
 
 
         output1 = self.tower_1(pooled_output)
-        output2 = self.tower_2(pooled_output).clamp(0, 5)
+        output2 = self.tower_2(pooled_output).clamp(1, 5)
         output3 = self.tower_3(pooled_output)
         output4 = self.tower_4(pooled_output).clamp(0, 5)
         return output1, output2, output3, output4
@@ -314,6 +314,8 @@ def get_predictions(model, data_loader):
             
             _, preds1 = torch.max(output1, dim=1)
             _, preds3 = torch.max(output3, dim=1)
+            if preds1 == 0:
+                    output2 = 0.0
             
             review_texts.extend(texts)
             p1.extend(preds1)
