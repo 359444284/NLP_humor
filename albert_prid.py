@@ -314,8 +314,6 @@ def get_predictions(model, data_loader):
             
             _, preds1 = torch.max(output1, dim=1)
             _, preds3 = torch.max(output3, dim=1)
-            if preds1 == 0:
-                    output2 = 0.0
             
             review_texts.extend(texts)
             p1.extend(preds1)
