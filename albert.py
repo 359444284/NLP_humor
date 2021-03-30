@@ -75,7 +75,7 @@ def create_data_loader(df, tokenizer, max_len, batch_size):
 class MyModel(nn.Module):
     def __init__(self, freeze_bert=False):
         super(MyModel, self).__init__()
-        albert_xxlarge_configuration = AlbertConfig(output_hidden_states=True, output_attentions=True, add_pooling_layer=False)
+        albert_xxlarge_configuration = AlbertConfig(output_hidden_states=True, output_attentions=True, add_pooling_layer=False, return_dict=True)
         self.model = AlbertModel.from_pretrained(pretrained_model_name_or_path=MODEL_PATH, config=albert_xxlarge_configuration)
         #self.model = RobertaModel.from_pretrained(pretrained_model_name_or_path=MODEL_PATH, output_hidden_states=True, output_attentions=True)
         #self.model = AutoModel.from_pretrained(pretrained_model_name_or_path=MODEL_PATH)
@@ -134,14 +134,14 @@ class MyModel(nn.Module):
             attention_mask=attention_mask
         )
         layer_logits = []
-        for layer in outputs[2][1:]:
+        for layer in outputs.hidden_states[1:]:
             out = self.nn_dense(layer)
             layer_logits.append(self.act(out))
 #             layer_logits.append(out)
 
         layer_logits = torch.cat(layer_logits, axis=2)
         layer_dist = self.softmax_all_layer(layer_logits)
-        seq_out = torch.cat([torch.unsqueeze(x, axis=2) for x in outputs[2][1:]], axis=2)
+        seq_out = torch.cat([torch.unsqueeze(x, axis=2) for x in outputs.hidden_states[1:]], axis=2)
         pooled_output = torch.matmul(torch.unsqueeze(layer_dist, axis=2), seq_out)
         pooled_output = torch.squeeze(pooled_output, axis=2)
 
