@@ -96,7 +96,7 @@ class MyModel(nn.Module):
         self.dropout = nn.Dropout(0.1)
 #         self.fc = nn.Linear(1924, 3) # before : 442 with max_length 36 # 806 with max_length 64
         self.flat = nn.Flatten()
-        self.fc_size = 1924
+        self.fc_size = 3700
 
         # is_humour
         self.tower_1 = nn.Sequential(
