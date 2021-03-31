@@ -146,7 +146,7 @@ class MyModel(nn.Module):
         pooled_output = torch.squeeze(pooled_output, axis=2)
 
         pooled_output = self.pooler_activation(self.pooler(pooled_output[:, 0])) if self.pooler is not None else None
-        print(outputs.last_hidden_state.shape)
+#         print(outputs.last_hidden_state.shape)
 
 
         output1 = self.tower_1(pooled_output)
