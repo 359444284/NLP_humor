@@ -90,13 +90,13 @@ class MyModel(nn.Module):
 #         self.nn_dense = nn.Linear(self.model.config.hidden_size, 1)
 #         self.truncated_normal_(self.nn_dense.weight)
 #         self.act = nn.ReLU()
-        self.conv = nn.Conv2d(in_channels=25, out_channels=25, kernel_size=(3, 1024), padding=True)
+        self.conv = nn.Conv2d(in_channels=13, out_channels=13, kernel_size=(3, 4096), padding=True)
         self.relu = nn.ReLU()
         self.pool = nn.MaxPool2d(kernel_size=3, stride=1)
         self.dropout = nn.Dropout(0.1)
 #         self.fc = nn.Linear(1924, 3) # before : 442 with max_length 36 # 806 with max_length 64
         self.flat = nn.Flatten()
-        self.fc_size = 3700
+        self.fc_size = 1924
 
         # is_humour
         self.tower_1 = nn.Sequential(
