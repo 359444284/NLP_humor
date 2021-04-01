@@ -94,14 +94,14 @@ class MyModel(nn.Module):
 #         self.conv = nn.Conv2d(in_channels=13, out_channels=13, kernel_size=(3, 4096), padding=True)
 #         self.relu = nn.ReLU()
 #         self.pool = nn.MaxPool2d(kernel_size=3, stride=1)
-        self.dropout = nn.Dropout(0.1)
+        self.dropout = nn.Dropout(0.2)
 #         self.fc = nn.Linear(1924, 3) # before : 442 with max_length 36 # 806 with max_length 64
 #         self.flat = nn.Flatten()
 #         self.fc_size = 1924
 
         # is_humour
         self.tower_1 = nn.Sequential(
-            nn.Dropout(p=0.1),
+            nn.Dropout(p=0.2),
             nn.Linear(self.model.config.hidden_size, 2),
 #             nn.Linear(self.fc_size, 2),
             nn.Softmax(dim=1)
@@ -109,14 +109,14 @@ class MyModel(nn.Module):
         
         # humor_rating
         self.tower_2 = nn.Sequential(
-            nn.Dropout(p=0.1),
+            nn.Dropout(p=0.2),
             nn.Linear(self.model.config.hidden_size, 1)
 #             nn.Linear(self.fc_size, 1)
         )
         
         # humor_controversy
         self.tower_3 = nn.Sequential(
-            nn.Dropout(p=0.1),
+            nn.Dropout(p=0.2),
 #             nn.Linear(self.fc_size, 2),
             nn.Linear(self.model.config.hidden_size, 2),
             nn.Softmax(dim=1)
@@ -124,7 +124,7 @@ class MyModel(nn.Module):
         
         # offense_rating
         self.tower_4 = nn.Sequential(
-            nn.Dropout(p=0.1),
+            nn.Dropout(p=0.2),
 #             nn.Linear(self.fc_size, 1)
             nn.Linear(self.model.config.hidden_size, 1)
         )
