@@ -75,32 +75,33 @@ def create_data_loader(df, tokenizer, max_len, batch_size):
 class MyModel(nn.Module):
     def __init__(self, freeze_bert=False):
         super(MyModel, self).__init__()
-        albert_xxlarge_configuration = AlbertConfig(output_hidden_states=True, output_attentions=True, return_dict=True)
-        self.model = AlbertModel.from_pretrained(pretrained_model_name_or_path=MODEL_PATH, config=albert_xxlarge_configuration)
-#         self.model = RobertaModel.from_pretrained(pretrained_model_name_or_path=MODEL_PATH, output_hidden_states=True, output_attentions=True, return_dict=True)
+#         albert_xxlarge_configuration = AlbertConfig(output_hidden_states=True, output_attentions=True, return_dict=True)
+#         self.model = AlbertModel.from_pretrained(pretrained_model_name_or_path=MODEL_PATH, config=albert_xxlarge_configuration)
+        self.model = RobertaModel.from_pretrained(pretrained_model_name_or_path=MODEL_PATH, output_hidden_states=True, output_attentions=True, return_dict=True)
         #self.model = AutoModel.from_pretrained(pretrained_model_name_or_path=MODEL_PATH)
         if freeze_bert:
             for p in self.model.parameters():
                 p.requires_grad = False
 
         # share layer
-#         self.softmax_all_layer = nn.Softmax(-1)
-#         self.pooler = nn.Linear(self.model.config.hidden_size, self.model.config.hidden_size)
-#         self.pooler_activation = nn.Tanh()
-#         self.nn_dense = nn.Linear(self.model.config.hidden_size, 1)
-#         self.truncated_normal_(self.nn_dense.weight)
-#         self.act = nn.ReLU()
-        self.conv = nn.Conv2d(in_channels=13, out_channels=13, kernel_size=(3, 4096), padding=True)
-        self.relu = nn.ReLU()
-        self.pool = nn.MaxPool2d(kernel_size=3, stride=1)
+        self.softmax_all_layer = nn.Softmax(-1)
+        self.pooler = nn.Linear(self.model.config.hidden_size, self.model.config.hidden_size)
+        self.pooler_activation = nn.Tanh()
+        self.nn_dense = nn.Linear(self.model.config.hidden_size, 1)
+        self.truncated_normal_(self.nn_dense.weight)
+        self.act = nn.ReLU()
+        
+#         self.conv = nn.Conv2d(in_channels=13, out_channels=13, kernel_size=(3, 4096), padding=True)
+#         self.relu = nn.ReLU()
+#         self.pool = nn.MaxPool2d(kernel_size=3, stride=1)
         self.dropout = nn.Dropout(0.1)
 #         self.fc = nn.Linear(1924, 3) # before : 442 with max_length 36 # 806 with max_length 64
-        self.flat = nn.Flatten()
-        self.fc_size = 1924
+#         self.flat = nn.Flatten()
+#         self.fc_size = 1924
 
         # is_humour
         self.tower_1 = nn.Sequential(
-            nn.Dropout(p=0.5),
+            nn.Dropout(p=0.1),
 #             nn.Linear(self.model.config.hidden_size, 2),
             nn.Linear(self.fc_size, 2),
             nn.Softmax(dim=1)
@@ -108,14 +109,14 @@ class MyModel(nn.Module):
         
         # humor_rating
         self.tower_2 = nn.Sequential(
-            nn.Dropout(p=0.5),
+            nn.Dropout(p=0.1),
 #             nn.Linear(self.model.config.hidden_size, 1)
             nn.Linear(self.fc_size, 1)
         )
         
         # humor_controversy
         self.tower_3 = nn.Sequential(
-            nn.Dropout(p=0.5),
+            nn.Dropout(p=0.1),
             nn.Linear(self.fc_size, 2),
 #             nn.Linear(self.model.config.hidden_size, 2),
             nn.Softmax(dim=1)
@@ -123,20 +124,20 @@ class MyModel(nn.Module):
         
         # offense_rating
         self.tower_4 = nn.Sequential(
-            nn.Dropout(p=0.5),
+            nn.Dropout(p=0.1),
             nn.Linear(self.fc_size, 1)
 #             nn.Linear(self.model.config.hidden_size, 1)
         )
       
-#     def truncated_normal_(self,tensor,mean=0,std=0.02):
-#         with torch.no_grad():
-#             size = tensor.shape
-#             tmp = tensor.new_empty(size+(4,)).normal_()
-#             valid = (tmp < 2) & (tmp > -2)
-#             ind = valid.max(-1, keepdim=True)[1]
-#             tensor.data.copy_(tmp.gather(-1, ind).squeeze(-1))
-#             tensor.data.mul_(std).add_(mean)
-#             return tensor
+    def truncated_normal_(self,tensor,mean=0,std=0.02):
+        with torch.no_grad():
+            size = tensor.shape
+            tmp = tensor.new_empty(size+(4,)).normal_()
+            valid = (tmp < 2) & (tmp > -2)
+            ind = valid.max(-1, keepdim=True)[1]
+            tensor.data.copy_(tmp.gather(-1, ind).squeeze(-1))
+            tensor.data.mul_(std).add_(mean)
+            return tensor
 
 
     def forward(self, input_ids, attention_mask):
@@ -144,24 +145,25 @@ class MyModel(nn.Module):
             input_ids=input_ids,
             attention_mask=attention_mask
         )
-#         layer_logits = []
-#         for layer in outputs.hidden_states[1:]:
-#             out = self.nn_dense(layer)
-#             layer_logits.append(self.act(out))
-# #             layer_logits.append(out)
+        layer_logits = []
+        for layer in outputs.hidden_states[1:]:
+            out = self.nn_dense(layer)
+            layer_logits.append(self.act(out))
+#             layer_logits.append(out)
 
-#         layer_logits = torch.cat(layer_logits, axis=2)
-#         layer_dist = self.softmax_all_layer(layer_logits)
-#         seq_out = torch.cat([torch.unsqueeze(x, axis=2) for x in outputs.hidden_states[1:]], axis=2)
-#         pooled_output = torch.matmul(torch.unsqueeze(layer_dist, axis=2), seq_out)
-#         pooled_output = torch.squeeze(pooled_output, axis=2)
+        layer_logits = torch.cat(layer_logits, axis=2)
+        layer_dist = self.softmax_all_layer(layer_logits)
+        seq_out = torch.cat([torch.unsqueeze(x, axis=2) for x in outputs.hidden_states[1:]], axis=2)
+        pooled_output = torch.matmul(torch.unsqueeze(layer_dist, axis=2), seq_out)
+        pooled_output = torch.squeeze(pooled_output, axis=2)
 
-#         pooled_output = self.pooler_activation(self.pooler(pooled_output[:, 0])) if self.pooler is not None else None
-
+        pooled_output = self.pooler_activation(self.pooler(pooled_output[:, 0])) if self.pooler is not None else None
+        pooled_output = self.dropout(pooled_output)
 #         pooled_output = outputs[1]
-        x = torch.transpose(torch.cat(tuple([t.unsqueeze(0) for t in outputs.hidden_states]), 0), 0, 1)
-        x = self.pool(self.dropout(self.relu(self.conv(self.dropout(x)))))
-        pooled_output = self.dropout(self.flat(self.dropout(x)))
+
+#         x = torch.transpose(torch.cat(tuple([t.unsqueeze(0) for t in outputs.hidden_states]), 0), 0, 1)
+#         x = self.pool(self.dropout(self.relu(self.conv(self.dropout(x)))))
+#         pooled_output = self.dropout(self.flat(self.dropout(x)))
 
         output1 = self.tower_1(pooled_output)
         output2 = self.tower_2(pooled_output).clamp(0, 5)
