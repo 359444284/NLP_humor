@@ -156,10 +156,10 @@ class MyModel(nn.Module):
         seq_out = torch.cat([torch.unsqueeze(x, axis=2) for x in outputs.hidden_states[1:]], axis=2)
         pooled_output = torch.matmul(torch.unsqueeze(layer_dist, axis=2), seq_out)
         pooled_output = torch.squeeze(pooled_output, axis=2)
-        pooled_output = self.dropout(pooled_output)
+#         pooled_output = self.dropout(pooled_output)
         pooled_output = self.pooler_activation(self.pooler(pooled_output[:, 0])) if self.pooler is not None else None
 #         pooled_output = outputs[1]
-
+        pooled_output = self.dropout(pooled_output)
 #         x = torch.transpose(torch.cat(tuple([t.unsqueeze(0) for t in outputs.hidden_states]), 0), 0, 1)
 #         x = self.pool(self.dropout(self.relu(self.conv(self.dropout(x)))))
 #         pooled_output = self.dropout(self.flat(self.dropout(x)))
