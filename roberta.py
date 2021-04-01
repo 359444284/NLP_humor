@@ -101,7 +101,7 @@ class MyModel(nn.Module):
 
         # is_humour
         self.tower_1 = nn.Sequential(
-            nn.Dropout(p=0.2),
+            nn.Dropout(p=0.3),
             nn.Linear(self.model.config.hidden_size, 2),
 #             nn.Linear(self.fc_size, 2),
             nn.Softmax(dim=1)
@@ -109,14 +109,14 @@ class MyModel(nn.Module):
         
         # humor_rating
         self.tower_2 = nn.Sequential(
-            nn.Dropout(p=0.2),
+            nn.Dropout(p=0.3),
             nn.Linear(self.model.config.hidden_size, 1)
 #             nn.Linear(self.fc_size, 1)
         )
         
         # humor_controversy
         self.tower_3 = nn.Sequential(
-            nn.Dropout(p=0.2),
+            nn.Dropout(p=0.3),
 #             nn.Linear(self.fc_size, 2),
             nn.Linear(self.model.config.hidden_size, 2),
             nn.Softmax(dim=1)
@@ -124,7 +124,7 @@ class MyModel(nn.Module):
         
         # offense_rating
         self.tower_4 = nn.Sequential(
-            nn.Dropout(p=0.2),
+            nn.Dropout(p=0.3),
 #             nn.Linear(self.fc_size, 1)
             nn.Linear(self.model.config.hidden_size, 1)
         )
@@ -159,7 +159,6 @@ class MyModel(nn.Module):
 #         pooled_output = self.dropout(pooled_output)
         pooled_output = self.pooler_activation(self.pooler(pooled_output[:, 0])) if self.pooler is not None else None
 #         pooled_output = outputs[1]
-        pooled_output = self.dropout(pooled_output)
 #         x = torch.transpose(torch.cat(tuple([t.unsqueeze(0) for t in outputs.hidden_states]), 0), 0, 1)
 #         x = self.pool(self.dropout(self.relu(self.conv(self.dropout(x)))))
 #         pooled_output = self.dropout(self.flat(self.dropout(x)))
