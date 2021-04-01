@@ -427,8 +427,8 @@ if __name__ == '__main__':
 
     set_seed(RANDOM_SEED)
 
-#     MODEL_PATH = 'roberta-large'
-    MODEL_PATH = 'albert-xxlarge-v2'
+    MODEL_PATH = 'roberta-large'
+#     MODEL_PATH = 'albert-xxlarge-v2'
     tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH, output_hidden_states=True, return_dict=True)
 
     df = pd.read_csv("./datas/task1/train/train.csv")
