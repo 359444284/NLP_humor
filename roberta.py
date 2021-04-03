@@ -13,7 +13,7 @@ import random
 import matplotlib.pyplot as plt
 # 70
 RANDOM_SEED = 70
-BATCH_SIZE = 2
+BATCH_SIZE = 8
 MAX_LEN = 150
 EPOCHS = 15
 torch.cuda.current_device()
