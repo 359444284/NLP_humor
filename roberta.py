@@ -566,11 +566,11 @@ if __name__ == '__main__':
             torch.save(model.state_dict(), 'best_model_state.bin')
             best_accuracy_1 = val_acc_1
             best_accuracy_2 = val_acc_2
-        elif val_acc_1 == best_accuracy_1:
-            if val_acc_2 > best_accuracy_2:
-                torch.save(model.state_dict(), 'best_model_state.bin')
-                best_accuracy_1 = val_acc_1
-                best_accuracy_2 = val_acc_2
+#         elif val_acc_1 == best_accuracy_1:
+#             if val_acc_2 > best_accuracy_2:
+#                 torch.save(model.state_dict(), 'best_model_state.bin')
+#                 best_accuracy_1 = val_acc_1
+#                 best_accuracy_2 = val_acc_2
 
 
 
