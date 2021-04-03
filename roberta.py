@@ -237,7 +237,7 @@ def train_epoch(
         
         
         
-        loss, log_vars = mtl(output1,
+        loss = mtl(output1,
                              output2[preds1 == 1],
                              output3[preds1 == 1],
                              output4,
@@ -312,12 +312,12 @@ def eval_model(model, mtl, data_loader, loss_fn_CE, loss_fn_MSE, device, n_examp
 #             else:
 #                 loss = loss
         
-            loss, log_vars = mtl(output1,
-                                 output2[preds1 == 1],
-                                 output3[preds1 == 1],
-                                 output4,
-                                 [targets[:,0].type(torch.cuda.LongTensor), targets[:,1][preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor), targets[:,3]]
-                                 )
+            loss =   mtl(output1,
+                         output2[preds1 == 1],
+                         output3[preds1 == 1],
+                         output4,
+                         [targets[:,0].type(torch.cuda.LongTensor), targets[:,1][preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor), targets[:,3]]
+                         )
             correct_predictions1 += torch.sum(preds1 == targets[:,0])
             acc1 = correct_predictions1.double() / n_examples
             correct_predictions2 += torch.sum(preds3 == targets[:,2])
@@ -387,7 +387,7 @@ class MultiTaskLossWrapper(nn.Module):
 
         loss = torch.mean(loss)
 
-        return loss, self.log_vars.data.tolist()
+        return loss
 
 class ScheduledOptim(object):
     '''A wrapper class for learning rate scheduling'''
@@ -562,12 +562,12 @@ if __name__ == '__main__':
         history['val_acc_2'].append(val_acc_2)
         history['val_loss'].append(val_loss)
 
-        if val_acc_2 > best_accuracy_2:
+        if val_acc_1 > best_accuracy_1:
             torch.save(model.state_dict(), 'best_model_state.bin')
             best_accuracy_1 = val_acc_1
             best_accuracy_2 = val_acc_2
-        elif val_acc_2 == best_accuracy_2:
-            if val_acc_1 > best_accuracy_1:
+        elif val_acc_1 == best_accuracy_1:
+            if val_acc_2 > best_accuracy_2:
                 torch.save(model.state_dict(), 'best_model_state.bin')
                 best_accuracy_1 = val_acc_1
                 best_accuracy_2 = val_acc_2
