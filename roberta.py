@@ -13,7 +13,7 @@ import random
 import matplotlib.pyplot as plt
 # 70
 RANDOM_SEED = 70
-BATCH_SIZE = 8
+BATCH_SIZE = 4
 MAX_LEN = 150
 EPOCHS = 15
 torch.cuda.current_device()
@@ -459,7 +459,7 @@ if __name__ == '__main__':
     #model.load_state_dict(torch.load('./best_model_state.bin'))
 
     if torch.cuda.device_count()>1:
-      model=nn.DataParallel(model,device_ids=[0,1,2])
+      model=nn.DataParallel(model,device_ids=[1,2])
 
     model = model.to(device)
     input_ids = data['input_ids'].to(device)
