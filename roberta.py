@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 RANDOM_SEED = 80
 BATCH_SIZE = 8
 MAX_LEN = 150
-EPOCHS = 15
+EPOCHS = 20
 torch.cuda.current_device()
 device = torch.device('cuda:1' if torch.cuda.is_available() else 'cpu')
 
