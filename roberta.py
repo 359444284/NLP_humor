@@ -12,7 +12,7 @@ import pandas as pd
 import random
 import matplotlib.pyplot as plt
 # 70 80 90
-RANDOM_SEED = 90
+RANDOM_SEED = 70
 BATCH_SIZE = 8
 MAX_LEN = 150
 EPOCHS = 20
@@ -219,30 +219,30 @@ def train_epoch(
 #                              output4,
 #                              [targets[:,0].type(torch.cuda.LongTensor), targets[:,1][preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor), targets[:,3]]
 #                          )
-#         loss = 0
+        loss = 0
 
-#         loss1 = loss_fn_CE(output1, targets[:,0].type(torch.cuda.LongTensor))
-#         loss4 = loss_fn_MSE(output4, targets[:,3])
-#         loss += 0.85*loss1 + 0.075*loss4
-#         if output2[preds1 == 1].numel():
+        loss1 = loss_fn_CE(output1, targets[:,0].type(torch.cuda.LongTensor))
+        loss4 = loss_fn_MSE(output4, targets[:,3])
+        loss += 0.25*loss1 + 0.25*loss4
+        if output2[preds1 == 1].numel():
             
-#             loss2 = loss_fn_MSE(output2[preds1 == 1], targets[:,1][preds1 == 1])
+            loss2 = loss_fn_MSE(output2[preds1 == 1], targets[:,1][preds1 == 1])
             
-#             loss3 = loss_fn_CE(output3[preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor))
-#             loss += 0.075*loss2 + 0.00*loss3
-#             loss = loss
-#         else:
-#             loss = loss
+            loss3 = loss_fn_CE(output3[preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor))
+            loss += 0.25*loss2 + 0.25*loss3
+            loss = loss
+        else:
+            loss = loss
         
         
         
         
-        loss = mtl(output1,
-                             output2[preds1 == 1],
-                             output3[preds1 == 1],
-                             output4,
-                             [targets[:,0].type(torch.cuda.LongTensor), targets[:,1][preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor), targets[:,3]]
-                             )
+#         loss = mtl(output1,
+#                              output2[preds1 == 1],
+#                              output3[preds1 == 1],
+#                              output4,
+#                              [targets[:,0].type(torch.cuda.LongTensor), targets[:,1][preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor), targets[:,3]]
+#                              )
 
         correct_predictions1 += torch.sum(preds1 == targets[:,0])
         acc1 = correct_predictions1.double() / n_examples
@@ -298,26 +298,26 @@ def eval_model(model, mtl, data_loader, loss_fn_CE, loss_fn_MSE, device, n_examp
 #                                  output4,
 #                                  [targets[:,0].type(torch.cuda.LongTensor), targets[:,1][preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor), targets[:,3]]
 #                              )
-#             loss = 0
-#             loss1 = loss_fn_CE(output1, targets[:,0].type(torch.cuda.LongTensor))
-#             loss4 = loss_fn_MSE(output4, targets[:,3])
-#             loss += 0.85*loss1 + 0.075*loss4
-#             if output2[preds1 == 1].numel():
+            loss = 0
+            loss1 = loss_fn_CE(output1, targets[:,0].type(torch.cuda.LongTensor))
+            loss4 = loss_fn_MSE(output4, targets[:,3])
+            loss += 0.25*loss1 + 0.25*loss4
+            if output2[preds1 == 1].numel():
 
-#                 loss2 = loss_fn_MSE(output2[preds1 == 1], targets[:,1][preds1 == 1])
+                loss2 = loss_fn_MSE(output2[preds1 == 1], targets[:,1][preds1 == 1])
 
-#                 loss3 = loss_fn_CE(output3[preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor))
-#                 loss += 0.075*loss2 + 0.00*loss3
-#                 loss = loss
-#             else:
-#                 loss = loss
+                loss3 = loss_fn_CE(output3[preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor))
+                loss += 0.25*loss2 + 0.25*loss3
+                loss = loss
+            else:
+                loss = loss
         
-            loss =   mtl(output1,
-                         output2[preds1 == 1],
-                         output3[preds1 == 1],
-                         output4,
-                         [targets[:,0].type(torch.cuda.LongTensor), targets[:,1][preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor), targets[:,3]]
-                         )
+#             loss =   mtl(output1,
+#                          output2[preds1 == 1],
+#                          output3[preds1 == 1],
+#                          output4,
+#                          [targets[:,0].type(torch.cuda.LongTensor), targets[:,1][preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor), targets[:,3]]
+#                          )
             correct_predictions1 += torch.sum(preds1 == targets[:,0])
             acc1 = correct_predictions1.double() / n_examples
             correct_predictions2 += torch.sum(preds3 == targets[:,2])
