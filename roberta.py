@@ -11,8 +11,8 @@ from collections import defaultdict
 import pandas as pd
 import random
 import matplotlib.pyplot as plt
-# 70
-RANDOM_SEED = 70
+# 70 80 90
+RANDOM_SEED = 80
 BATCH_SIZE = 8
 MAX_LEN = 150
 EPOCHS = 15
