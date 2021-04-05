@@ -223,7 +223,7 @@ def train_epoch(
 
         loss1 = loss_fn_CE(output1, targets[:,0].type(torch.cuda.LongTensor))
         loss4 = loss_fn_MSE(output4, targets[:,3])
-        loss += 0.30*loss1 + 0.70*loss4
+        loss += 0.40*loss1 + 0.60*loss4
         if output2[preds1 == 1].numel():
             
             loss2 = loss_fn_MSE(output2[preds1 == 1], targets[:,1][preds1 == 1])
