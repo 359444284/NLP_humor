@@ -29,9 +29,38 @@ def set_seed(seed):
     torch.cuda.manual_seed(seed)
 
 
+# class GPReviewDataset(Dataset):
+#     def __init__(self, reviews, tokenizer, max_len):
+#         self.reviews = reviews
+#         self.tokenizer = tokenizer
+#         self.max_len = max_len
+
+#     def __len__(self):
+#         return len(self.reviews)
+
+#     def __getitem__(self, item):
+#         review = str(self.reviews[item])
+#         encoding = self.tokenizer.encode_plus(
+#               review,
+#               add_special_tokens=True,
+#               max_length=self.max_len,
+#               return_token_type_ids=False,
+#               padding='max_length',
+#               return_attention_mask=True,
+#               return_tensors='pt',
+#         )
+
+#         return{
+#             'review_text': review,
+#             'input_ids': encoding['input_ids'].flatten(),
+#             'attention_mask': encoding['attention_mask'].flatten(),
+#         }
+
 class GPReviewDataset(Dataset):
-    def __init__(self, reviews, tokenizer, max_len):
-        self.reviews = reviews
+    def __init__(self, dataframe, with_label, tokenizer, max_len):
+        self.reviews=dataframe.text.to_numpy()
+        if with_label:
+          self.targets=dataframe.list.to_numpy()
         self.tokenizer = tokenizer
         self.max_len = max_len
 
@@ -49,46 +78,25 @@ class GPReviewDataset(Dataset):
               return_attention_mask=True,
               return_tensors='pt',
         )
+        
+        if with_label:
+             return {
+                 'review_text': review,
+                 'input_ids': encoding['input_ids'].flatten(),
+                 'attention_mask': encoding['attention_mask'].flatten(),
+                 'targets': torch.tensor(self.targets[item], dtype=torch.float)
+             }
+        else:
+             return {
+                 'review_text': review,
+                 'input_ids': encoding['input_ids'].flatten(),
+                 'attention_mask': encoding['attention_mask'].flatten(),
+             }
 
-        return{
-            'review_text': review,
-            'input_ids': encoding['input_ids'].flatten(),
-            'attention_mask': encoding['attention_mask'].flatten(),
-        }
-
-class GPReviewDataset1(Dataset):
-    def __init__(self, reviews, targets, tokenizer, max_len):
-        self.reviews = reviews
-        self.targets = targets
-        self.tokenizer = tokenizer
-        self.max_len = max_len
-
-    def __len__(self):
-        return len(self.reviews)
-
-    def __getitem__(self, item):
-        review = str(self.reviews[item])
-        target = self.targets[item]
-        encoding = self.tokenizer.encode_plus(
-              review,
-              add_special_tokens=True,
-              max_length=self.max_len,
-              return_token_type_ids=False,
-              padding='max_length',
-              return_attention_mask=True,
-              return_tensors='pt',
-        )
-
-        return{
-            'review_text': review,
-            'input_ids': encoding['input_ids'].flatten(),
-            'attention_mask': encoding['attention_mask'].flatten(),
-            'targets': torch.tensor(target, dtype=torch.float)
-        }
-
-def create_data_loader(df, tokenizer, max_len, batch_size):
+def create_data_loader(df, with_label, tokenizer, max_len, batch_size):
     ds = GPReviewDataset(
-        reviews=df.text.to_numpy(),
+        df,
+        with_label,
         tokenizer=tokenizer,
         max_len=max_len
     )
@@ -99,19 +107,19 @@ def create_data_loader(df, tokenizer, max_len, batch_size):
         num_workers=4
     )
 
-def create_data_loader1(df, tokenizer, max_len, batch_size):
-    ds = GPReviewDataset1(
-        reviews=df.text.to_numpy(),
-        targets=df.list.to_numpy(),
-        tokenizer=tokenizer,
-        max_len=max_len
-    )
+# def create_data_loader1(df, tokenizer, max_len, batch_size):
+#     ds = GPReviewDataset1(
+#         reviews=df.text.to_numpy(),
+#         targets=df.list.to_numpy(),
+#         tokenizer=tokenizer,
+#         max_len=max_len
+#     )
 
-    return DataLoader(
-        ds,
-        batch_size=batch_size,
-        num_workers=4
-    )
+#     return DataLoader(
+#         ds,
+#         batch_size=batch_size,
+#         num_workers=4
+#     )
 
 class MyModel(nn.Module):
     def __init__(self, freeze_bert=False):
@@ -312,10 +320,7 @@ def get_predictions(model, data_loader):
     p2 = []
     p3 = []
     p4 = []
-#     prediction_probs_C = []
-#     prediction_probs_R = []
-#     prediction_probs_C = []
-#     prediction_probs_R = []
+
     with torch.no_grad():
         for d in data_loader:
             texts = d["review_text"]
@@ -338,17 +343,14 @@ def get_predictions(model, data_loader):
             p2.extend(output2)
             p3.extend(preds3)
             p4.extend(output4)
-#             prediction_probs_C.extend([output1, output3])
-#             prediction_probs_R.extend([output2, output4])
+
     p1 = torch.stack(p1).cpu()
     p2 = torch.stack(p2).cpu()
     p3 = torch.stack(p3).cpu()
     p4 = torch.stack(p4).cpu()
     predictions = [p1,p2,p3,p4]
 #     predictions = [p1]
-#     prediction_probs_C = torch.stack(prediction_probs_C).cpu()
-#     prediction_probs_R = torch.stack(prediction_probs_R).cpu()
-#     return review_texts, predictions, prediction_probs_C, prediction_probs_R
+
     return review_texts, predictions
 
 def get_predictions1(model, data_loader):
@@ -447,7 +449,7 @@ if __name__ == '__main__':
      class_names_1 = ['is_humor', 'not_humor']
      class_names_2 = ['is_CON', 'not_CON']
 
-     test_data_loader = create_data_loader(df, tokenizer, MAX_LEN, BATCH_SIZE)
+     test_data_loader = create_data_loader(df, False, tokenizer, MAX_LEN, BATCH_SIZE)
 
      model = MyModel()
      if torch.cuda.device_count()>1:
@@ -498,15 +500,15 @@ if __name__ == '__main__':
        random_state=RANDOM_SEED
      )
 
-     train_data_loader1 = create_data_loader1(df_train1, tokenizer, MAX_LEN, BATCH_SIZE)
-     val_data_loader1 = create_data_loader1(df_val1, tokenizer, MAX_LEN, BATCH_SIZE)
-     test_data_loader1 = create_data_loader1(df_test1, tokenizer, MAX_LEN, BATCH_SIZE)
-     data1 = next(iter(train_data_loader1))
+     train_data_loader = create_data_loader(df_train1, True, tokenizer, MAX_LEN, BATCH_SIZE)
+     val_data_loader = create_data_loader(df_val1, True, tokenizer, MAX_LEN, BATCH_SIZE)
+     own_test_data_loader = create_data_loader(df_test1, True, tokenizer, MAX_LEN, BATCH_SIZE)
+     data1 = next(iter(train_data_loader))
 
 
      y_review_texts, y_pred, y_test = get_predictions1(
        model,
-       test_data_loader1
+       own_test_data_loader
      )
 
      print(classification_report(y_test[0], y_pred[0], target_names=class_names_1))
