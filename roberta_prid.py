@@ -524,13 +524,13 @@ if __name__ == '__main__':
      label_3 = label_3[['humor_controversy']]
      label_4 = pd.DataFrame({'offense_rating':y_pred[3]})
      label_4 = label_4[['offense_rating']]
-     target_1 = pd.DataFrame({'target_1':y_pred[0]})
+     target_1 = pd.DataFrame({'target_1':y_test[0]})
      target_1 = target_1[['target_1']]
-     target_2 = pd.DataFrame({'target_2':y_pred[1]})
+     target_2 = pd.DataFrame({'target_2':y_test[1]})
      target_2 = target_2[['target_2']]
-     target_3 = pd.DataFrame({'target_3':y_pred[2]})
+     target_3 = pd.DataFrame({'target_3':y_test[2]})
      target_3 = target_3[['target_3']]
-     target_4 = pd.DataFrame({'target_4':y_pred[3]})
+     target_4 = pd.DataFrame({'target_4':y_test[3]})
      target_4 = target_4[['target_4']]
      own_result = pd.concat([text, label_1, target_1, label_2, target_2, label_3, target_3, label_4, target_4],axis=1)
 #      result = pd.concat([result,label_1],axis=1)
