@@ -138,19 +138,19 @@ class MyModel(nn.Module):
             input_ids=input_ids,
             attention_mask=attention_mask
         )
-        layer_logits = []
-        for layer in outputs.hidden_states[1:]:
-            out = self.nn_dense(layer)
-            layer_logits.append(self.act(out))
-#             layer_logits.append(out)
+#         layer_logits = []
+#         for layer in outputs.hidden_states[1:]:
+#             out = self.nn_dense(layer)
+#             layer_logits.append(self.act(out))
+# #             layer_logits.append(out)
 
-        layer_logits = torch.cat(layer_logits, axis=2)
-        layer_dist = self.softmax_all_layer(layer_logits)
-        seq_out = torch.cat([torch.unsqueeze(x, axis=2) for x in outputs.hidden_states[1:]], axis=2)
-        pooled_output = torch.matmul(torch.unsqueeze(layer_dist, axis=2), seq_out)
-        pooled_output = torch.squeeze(pooled_output, axis=2)
-        pooled_output = self.pooler_activation(self.pooler(pooled_output[:, 0])) if self.pooler is not None else None
-#         pooled_output = outputs[1]
+#         layer_logits = torch.cat(layer_logits, axis=2)
+#         layer_dist = self.softmax_all_layer(layer_logits)
+#         seq_out = torch.cat([torch.unsqueeze(x, axis=2) for x in outputs.hidden_states[1:]], axis=2)
+#         pooled_output = torch.matmul(torch.unsqueeze(layer_dist, axis=2), seq_out)
+#         pooled_output = torch.squeeze(pooled_output, axis=2)
+#         pooled_output = self.pooler_activation(self.pooler(pooled_output[:, 0])) if self.pooler is not None else None
+        pooled_output = outputs.pooler_output
 
         output1 = self.tower_1(pooled_output)
         output2 = self.tower_2(pooled_output).clamp(0, 5)
@@ -212,13 +212,13 @@ def train_epoch(
 
         loss1 = loss_fn_CE(output1, targets[:,0].type(torch.cuda.LongTensor))
         loss4 = loss_fn_MSE(output4, targets[:,3])
-        loss += 0.25*loss1 + 0.25*loss4
+        loss += 0.4*loss1 + 0.6*loss4
         if output2[preds1 == 1].numel():
             
             loss2 = loss_fn_MSE(output2[preds1 == 1], targets[:,1][preds1 == 1])
             
             loss3 = loss_fn_CE(output3[preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor))
-            loss += 0.25*loss2 + 0.25*loss3
+            loss += 0.0*loss2 + 0.0*loss3
             loss = loss
         else:
             loss = loss
@@ -290,13 +290,13 @@ def eval_model(model, mtl, data_loader, loss_fn_CE, loss_fn_MSE, device, n_examp
             loss = 0
             loss1 = loss_fn_CE(output1, targets[:,0].type(torch.cuda.LongTensor))
             loss4 = loss_fn_MSE(output4, targets[:,3])
-            loss += 0.25*loss1 + 0.25*loss4
+            loss += 0.4*loss1 + 0.6*loss4
             if output2[preds1 == 1].numel():
 
                 loss2 = loss_fn_MSE(output2[preds1 == 1], targets[:,1][preds1 == 1])
 
                 loss3 = loss_fn_CE(output3[preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor))
-                loss += 0.25*loss2 + 0.25*loss3
+                loss += 0.0*loss2 + 0.0*loss3
                 loss = loss
             else:
                 loss = loss
