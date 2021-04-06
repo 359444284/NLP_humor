@@ -314,6 +314,8 @@ def get_predictions(model, data_loader):
     p4 = []
 #     prediction_probs_C = []
 #     prediction_probs_R = []
+#     prediction_probs_C = []
+#     prediction_probs_R = []
     with torch.no_grad():
         for d in data_loader:
             texts = d["review_text"]
