@@ -90,14 +90,7 @@ class MyModel(nn.Module):
         self.nn_dense = nn.Linear(self.model.config.hidden_size, 1)
         self.truncated_normal_(self.nn_dense.weight)
         self.act = nn.ReLU()
-        
-#         self.conv = nn.Conv2d(in_channels=13, out_channels=13, kernel_size=(3, 4096), padding=True)
-#         self.relu = nn.ReLU()
-#         self.pool = nn.MaxPool2d(kernel_size=3, stride=1)
         self.dropout = nn.Dropout(0.2)
-#         self.fc = nn.Linear(1924, 3) # before : 442 with max_length 36 # 806 with max_length 64
-#         self.flat = nn.Flatten()
-#         self.fc_size = 1924
 
         # is_humour
         self.tower_1 = nn.Sequential(
@@ -156,12 +149,8 @@ class MyModel(nn.Module):
         seq_out = torch.cat([torch.unsqueeze(x, axis=2) for x in outputs.hidden_states[1:]], axis=2)
         pooled_output = torch.matmul(torch.unsqueeze(layer_dist, axis=2), seq_out)
         pooled_output = torch.squeeze(pooled_output, axis=2)
-#         pooled_output = self.dropout(pooled_output)
         pooled_output = self.pooler_activation(self.pooler(pooled_output[:, 0])) if self.pooler is not None else None
 #         pooled_output = outputs[1]
-#         x = torch.transpose(torch.cat(tuple([t.unsqueeze(0) for t in outputs.hidden_states]), 0), 0, 1)
-#         x = self.pool(self.dropout(self.relu(self.conv(self.dropout(x)))))
-#         pooled_output = self.dropout(self.flat(self.dropout(x)))
 
         output1 = self.tower_1(pooled_output)
         output2 = self.tower_2(pooled_output).clamp(0, 5)
@@ -327,38 +316,6 @@ def eval_model(model, mtl, data_loader, loss_fn_CE, loss_fn_MSE, device, n_examp
     return acc1, mes1, acc2, mes2, np.mean(losses)
 #     return acc1, np.mean(losses)
 
-def get_predictions(model, data_loader):
-    model = model.eval()
-    review_texts = []
-    predictions = []
-    prediction_probs = []
-    real_values = []
-    with torch.no_grad():
-        for d in data_loader:
-            texts = d["review_text"]
-            input_ids = d["input_ids"].to(device)
-            attention_mask = d["attention_mask"].to(device)
-            targets = d["targets"].to(device)
-            output1, output2, output3, output4 = model(
-                input_ids=input_ids,
-                attention_mask=attention_mask
-            )
-            output2 = output2[:,0]
-            output4 = output4[:,0]
-            
-            _, preds1 = torch.max(output1, dim=1)
-            mes1 = (output2 - targets[:,1]).norm(2).pow(2)
-            _, preds3 = torch.max(output3, dim=1)
-            mes2 = (output4 - targets[:,3]).norm(2).pow(2)
-            
-            review_texts.extend(texts)
-            predictions.extend([output1, mes1, output3, mes2])
-            prediction_probs.extend([output1, output2, output3, output4])
-            real_values.extend([targets[:,0], targets[:,1], targets[:,2], targets[:,3]])
-    predictions = torch.stack(predictions).cpu()
-    prediction_probs = torch.stack(prediction_probs).cpu()
-    real_values = torch.stack(real_values).cpu()
-    return review_texts, predictions, prediction_probs, real_values
 
 class MultiTaskLossWrapper(nn.Module):
     def __init__(self, task_num, loss_function_CE):
@@ -573,15 +530,4 @@ if __name__ == '__main__':
                 best_accuracy_2 = val_acc_2
 
 
-
-
-    y_review_texts, y_pred, y_pred_probs, y_test = get_predictions(
-        model,
-        test_data_loader
-    )
-
-    print(classification_report(y_test[:,0], y_pred[:,0], target_names=class_names_1))
-    print((y_test[:,1] - y_pred[:,1]).norm(2).pow(2))
-    print(classification_report(y_test[:,2], y_pred[:,2], target_names=class_names_2))
-    print((y_test[:,3] - y_pred[:,3]).norm(2).pow(2))
 
