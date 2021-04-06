@@ -395,6 +395,7 @@ def get_predictions1(model, data_loader):
     p2 = torch.stack(p2).cpu()
     p3 = torch.stack(p3).cpu()
     p4 = torch.stack(p4).cpu()
+    print(r1)
     r1 = torch.stack(r1).cpu()
     r2 = torch.stack(r2).cpu()
     r3 = torch.stack(r3).cpu()
