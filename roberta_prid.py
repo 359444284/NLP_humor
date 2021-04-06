@@ -396,14 +396,13 @@ def get_predictions1(model, data_loader):
     p3 = torch.stack(p3).cpu()
     p4 = torch.stack(p4).cpu()
     r1 = torch.stack(r1).cpu()
-    print(r1)
     r2 = torch.stack(r2).cpu()
     r3 = torch.stack(r3).cpu()
     r4 = torch.stack(r4).cpu()
     predictions = [p1,p2,p3,p4]
     real_values = [r1,r2,r3,r4]
 
-    return review_texts, predictions, targets
+    return review_texts, predictions, real_values
 
 
 class MultiTaskLossWrapper(nn.Module):
@@ -508,12 +507,10 @@ if __name__ == '__main__':
        model,
        test_data_loader1
      )
-     print(np.shape(y_pred[0]))
-     print(y_test)
-     print(np.shape(y_test[:,0]))
-     print(classification_report(y_test[:,0], y_pred[0], target_names=class_names_1))
-     print((y_test[:,1] - y_pred[1]).norm(2).pow(2))
-     print(classification_report(y_test[:,2], y_pred[2], target_names=class_names_2))
-     print((y_test[:,3] - y_pred[3]).norm(2).pow(2))
+
+     print(classification_report(y_test[0], y_pred[0], target_names=class_names_1))
+     print((y_test[1] - y_pred[1]).norm(2).pow(2))
+     print(classification_report(y_test[2], y_pred[2], target_names=class_names_2))
+     print((y_test[3] - y_pred[3]).norm(2).pow(2))
 
 
