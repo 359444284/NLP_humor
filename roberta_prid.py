@@ -12,7 +12,7 @@ import pandas as pd
 import random
 import matplotlib as plt
 
-RANDOM_SEED = 778
+RANDOM_SEED = 70
 BATCH_SIZE = 8
 MAX_LEN = 150
 EPOCHS = 10
