@@ -484,6 +484,7 @@ if __name__ == '__main__':
      result.to_csv("task1a.csv")
 
      df1 = pd.read_csv("./datas/task1/train/train.csv")
+     df1 = df1.fillna(0.0)
      df1['list'] = df1[df1.columns[2:]].values.tolist()
      df1 = df1[['text', 'list']]
      df_train1, df_test1 = train_test_split(
