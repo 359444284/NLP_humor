@@ -359,6 +359,59 @@ def get_predictions1(model, data_loader):
     p2 = []
     p3 = []
     p4 = []
+    r1 = []
+    r2 = []
+    r3 = []
+    r4 = []
+    real_values = []
+    with torch.no_grad():
+        for d in data_loader:
+            texts = d["review_text"]
+            input_ids = d["input_ids"].to(device)
+            attention_mask = d["attention_mask"].to(device)
+            targets = d["targets"].to(device)
+            output1, output2, output3, output4 = model(
+#             output1 = model(
+                input_ids=input_ids,
+                attention_mask=attention_mask
+            )
+            
+            output2 = output2[:,0]
+            output4 = output4[:,0]
+            
+            _, preds1 = torch.max(output1, dim=1)
+            _, preds3 = torch.max(output3, dim=1)
+            
+            review_texts.extend(texts)
+            p1.extend(preds1)
+            p2.extend(output2)
+            p3.extend(preds3)
+            p4.extend(output4)
+            r1.extend(targets[:,0])
+            r2.extend(targets[:,1])
+            r3.extend(targets[:,2])
+            r4.extend(targets[:,3])
+    p1 = torch.stack(p1).cpu()
+    p2 = torch.stack(p2).cpu()
+    p3 = torch.stack(p3).cpu()
+    p4 = torch.stack(p4).cpu()
+    r1 = torch.stack(r1).cpu()
+    r2 = torch.stack(r2).cpu()
+    r3 = torch.stack(r3).cpu()
+    r4 = torch.stack(r4).cpu()
+    predictions = [p1,p2,p3,p4]
+    real_values = [r1,r2,r3,r4]
+
+    return review_texts, predictions, targets
+
+def get_predictions1(model, data_loader):
+    model = model.eval()
+    review_texts = []
+    predictions = []
+    p1 = []
+    p2 = []
+    p3 = []
+    p4 = []
 #     prediction_probs_C = []
 #     prediction_probs_R = []
     real_values = []
@@ -469,34 +522,34 @@ if __name__ == '__main__':
      print(result)
      result.to_csv("task1a.csv")
 
-#      df1 = pd.read_csv("./datas/task1/train/train.csv")
-#      df1['list'] = df1[df1.columns[2:]].values.tolist()
-#      df1 = df1[['text', 'list']]
-#      df_train1, df_test1 = train_test_split(
-#        df1,
-#        test_size=0.1,
-#        random_state=RANDOM_SEED
-#      )
-#      df_val1, df_test1 = train_test_split(
-#        df_test1,
-#        test_size=0.5,
-#        random_state=RANDOM_SEED
-#      )
+     df1 = pd.read_csv("./datas/task1/train/train.csv")
+     df1['list'] = df1[df1.columns[2:]].values.tolist()
+     df1 = df1[['text', 'list']]
+     df_train1, df_test1 = train_test_split(
+       df1,
+       test_size=0.1,
+       random_state=RANDOM_SEED
+     )
+     df_val1, df_test1 = train_test_split(
+       df_test1,
+       test_size=0.5,
+       random_state=RANDOM_SEED
+     )
 
-#      train_data_loader1 = create_data_loader1(df_train1, tokenizer, MAX_LEN, BATCH_SIZE)
-#      val_data_loader1 = create_data_loader1(df_val1, tokenizer, MAX_LEN, BATCH_SIZE)
-#      test_data_loader1 = create_data_loader1(df_test1, tokenizer, MAX_LEN, BATCH_SIZE)
-#      data1 = next(iter(train_data_loader1))
+     train_data_loader1 = create_data_loader1(df_train1, tokenizer, MAX_LEN, BATCH_SIZE)
+     val_data_loader1 = create_data_loader1(df_val1, tokenizer, MAX_LEN, BATCH_SIZE)
+     test_data_loader1 = create_data_loader1(df_test1, tokenizer, MAX_LEN, BATCH_SIZE)
+     data1 = next(iter(train_data_loader1))
 
 
-#      y_review_texts, y_pred, y_probs_C, y_probs_R, y_test = get_predictions1(
-#        model,
-#        test_data_loader1
-#      )
+     y_review_texts, y_pred, y_test = get_predictions1(
+       model,
+       test_data_loader1
+     )
 
-#      print(classification_report(y_test[:,0], y_pred[:,0], target_names=class_names_1))
-#      print((y_test[:,1] - y_pred[:,1]).norm(2).pow(2))
-#      print(classification_report(y_test[:,2], y_pred[:,2], target_names=class_names_2))
-#      print((y_test[:,3] - y_pred[:,3]).norm(2).pow(2))
+     print(classification_report(y_test[:,0], y_pred[:,0], target_names=class_names_1))
+     print((y_test[:,1] - y_pred[:,1]).norm(2).pow(2))
+     print(classification_report(y_test[:,2], y_pred[:,2], target_names=class_names_2))
+     print((y_test[:,3] - y_pred[:,3]).norm(2).pow(2))
 
 
