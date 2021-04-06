@@ -508,10 +508,10 @@ if __name__ == '__main__':
        test_data_loader1
      )
      print(np.shape(y_pred[0]))
-     print(np.shape(y_test[0]))
-     print(classification_report(y_test[0], y_pred[0], target_names=class_names_1))
-     print((y_test[1] - y_pred[1]).norm(2).pow(2))
-     print(classification_report(y_test[2], y_pred[2], target_names=class_names_2))
-     print((y_test[3] - y_pred[3]).norm(2).pow(2))
+     print(np.shape(y_test[:0]))
+     print(classification_report(y_test[:0], y_pred[0], target_names=class_names_1))
+     print((y_test[:1] - y_pred[1]).norm(2).pow(2))
+     print(classification_report(y_test[:2], y_pred[2], target_names=class_names_2))
+     print((y_test[:3] - y_pred[3]).norm(2).pow(2))
 
 
