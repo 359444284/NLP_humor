@@ -59,6 +59,7 @@ def set_seed(seed):
 class GPReviewDataset(Dataset):
     def __init__(self, dataframe, with_label, tokenizer, max_len):
         self.reviews=dataframe.text.to_numpy()
+        self.with_label = with_label
         if with_label:
           self.targets=dataframe.list.to_numpy()
         self.tokenizer = tokenizer
@@ -79,7 +80,7 @@ class GPReviewDataset(Dataset):
               return_tensors='pt',
         )
         
-        if with_label:
+        if self.with_label:
              return {
                  'review_text': review,
                  'input_ids': encoding['input_ids'].flatten(),
