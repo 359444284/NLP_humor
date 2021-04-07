@@ -416,9 +416,9 @@ if __name__ == '__main__':
         random_state=RANDOM_SEED
     )
 
-    train_data_loader = create_data_loader(df_train, tokenizer, MAX_LEN, BATCH_SIZE)
-    val_data_loader = create_data_loader(df_val, tokenizer, MAX_LEN, BATCH_SIZE)
-    test_data_loader = create_data_loader(df_test, tokenizer, MAX_LEN, BATCH_SIZE)
+    train_data_loader = create_data_loader(df_train, True, tokenizer, MAX_LEN, BATCH_SIZE)
+    val_data_loader = create_data_loader(df_val, True, tokenizer, MAX_LEN, BATCH_SIZE)
+    test_data_loader = create_data_loader(df_test, True, tokenizer, MAX_LEN, BATCH_SIZE)
     data = next(iter(train_data_loader))
 
     model = MyModel(use_all_layer=USE_ALL_LAYER)
