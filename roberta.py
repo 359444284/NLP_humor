@@ -221,13 +221,13 @@ def train_epoch(
         loss = 0
         loss1 = loss_fn_CE(output1, targets[:,0].type(torch.cuda.LongTensor))
         loss4 = loss_fn_MSE(output4, targets[:,3])
-        loss += WEIGHT_1A*loss1 + WEIGHT_1B*loss4
+        loss += WEIGHT_1A*loss1 + WEIGHT_2A*loss4
         if output2[preds1 == 1].numel():
 
             loss2 = loss_fn_MSE(output2[preds1 == 1], targets[:,1][preds1 == 1])
 
             loss3 = loss_fn_CE(output3[preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor))
-            loss += WEIGHT_1C*loss2 + WEIGHT_2A*loss3
+            loss += WEIGHT_1B*loss2 + WEIGHT_1C*loss3
             loss = loss
         else:
             loss = loss
@@ -299,13 +299,13 @@ def eval_model(model, mtl, data_loader, loss_fn_CE, loss_fn_MSE, device, n_examp
             loss = 0
             loss1 = loss_fn_CE(output1, targets[:,0].type(torch.cuda.LongTensor))
             loss4 = loss_fn_MSE(output4, targets[:,3])
-            loss += WEIGHT_1A*loss1 + WEIGHT_1B*loss4
+            loss += WEIGHT_1A*loss1 + WEIGHT_2A*loss4
             if output2[preds1 == 1].numel():
 
                 loss2 = loss_fn_MSE(output2[preds1 == 1], targets[:,1][preds1 == 1])
 
                 loss3 = loss_fn_CE(output3[preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor))
-                loss += WEIGHT_1C*loss2 + WEIGHT_2A*loss3
+                loss += WEIGHT_1B*loss2 + WEIGHT_1C*loss3
                 loss = loss
             else:
                 loss = loss
