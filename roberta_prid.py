@@ -195,25 +195,19 @@ class MyModel(nn.Module):
             input_ids=input_ids,
             attention_mask=attention_mask
         )
-        layer_logits = []
-        for layer in outputs.hidden_states[1:]:
-            out = self.nn_dense(layer)
-            layer_logits.append(self.act(out))
-#             layer_logits.append(out)
+#         layer_logits = []
+#         for layer in outputs.hidden_states[1:]:
+#             out = self.nn_dense(layer)
+#             layer_logits.append(self.act(out))
+# #             layer_logits.append(out)
 
-        layer_logits = torch.cat(layer_logits, axis=2)
-        layer_dist = self.softmax_all_layer(layer_logits)
-        seq_out = torch.cat([torch.unsqueeze(x, axis=2) for x in outputs.hidden_states[1:]], axis=2)
-        pooled_output = torch.matmul(torch.unsqueeze(layer_dist, axis=2), seq_out)
-        pooled_output = torch.squeeze(pooled_output, axis=2)
-#         pooled_output = self.dropout(pooled_output)
-        pooled_output = self.pooler_activation(self.pooler(pooled_output[:, 0])) if self.pooler is not None else None
-#         pooled_output = self.dropout(pooled_output)
-#         pooled_output = outputs[1]
-
-#         x = torch.transpose(torch.cat(tuple([t.unsqueeze(0) for t in outputs.hidden_states]), 0), 0, 1)
-#         x = self.pool(self.dropout(self.relu(self.conv(self.dropout(x)))))
-#         pooled_output = self.dropout(self.flat(self.dropout(x)))
+#         layer_logits = torch.cat(layer_logits, axis=2)
+#         layer_dist = self.softmax_all_layer(layer_logits)
+#         seq_out = torch.cat([torch.unsqueeze(x, axis=2) for x in outputs.hidden_states[1:]], axis=2)
+#         pooled_output = torch.matmul(torch.unsqueeze(layer_dist, axis=2), seq_out)
+#         pooled_output = torch.squeeze(pooled_output, axis=2)
+#         pooled_output = self.pooler_activation(self.pooler(pooled_output[:, 0])) if self.pooler is not None else None
+        pooled_output = outputs.pooler_output
 
         output1 = self.tower_1(pooled_output)
         output2 = self.tower_2(pooled_output).clamp(0, 5)
