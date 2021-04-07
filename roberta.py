@@ -73,7 +73,7 @@ def create_data_loader(df, tokenizer, max_len, batch_size):
     )
 
 class MyModel(nn.Module):
-    def __init__(self, freeze_bert=False, use_all_layer = True):
+    def __init__(self, freeze_bert=False, use_all_layer=True):
         super(MyModel, self).__init__()
         self.use_all_layer = use_all_layer
         self.model = AutoModel.from_pretrained(pretrained_model_name_or_path=MODEL_PATH, output_hidden_states=True, output_attentions=True, return_dict=True)
@@ -88,13 +88,11 @@ class MyModel(nn.Module):
         self.nn_dense = nn.Linear(self.model.config.hidden_size, 1)
         self.truncated_normal_(self.nn_dense.weight)
         self.act = nn.ReLU()
-        self.dropout = nn.Dropout(0.2)
 
         # is_humour
         self.tower_1 = nn.Sequential(
             nn.Dropout(p=0.8),
             nn.Linear(self.model.config.hidden_size, 2),
-#             nn.Linear(self.fc_size, 2),
             nn.Softmax(dim=1)
         )
         
@@ -102,13 +100,11 @@ class MyModel(nn.Module):
         self.tower_2 = nn.Sequential(
             nn.Dropout(p=0.8),
             nn.Linear(self.model.config.hidden_size, 1)
-#             nn.Linear(self.fc_size, 1)
         )
         
         # humor_controversy
         self.tower_3 = nn.Sequential(
             nn.Dropout(p=0.8),
-#             nn.Linear(self.fc_size, 2),
             nn.Linear(self.model.config.hidden_size, 2),
             nn.Softmax(dim=1)
         )
@@ -116,7 +112,6 @@ class MyModel(nn.Module):
         # offense_rating
         self.tower_4 = nn.Sequential(
             nn.Dropout(p=0.8),
-#             nn.Linear(self.fc_size, 1)
             nn.Linear(self.model.config.hidden_size, 1)
         )
       
