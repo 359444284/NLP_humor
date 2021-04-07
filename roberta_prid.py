@@ -123,11 +123,9 @@ def create_data_loader(df, with_label, tokenizer, max_len, batch_size):
 #     )
 
 class MyModel(nn.Module):
-    def __init__(self, freeze_bert=False):
+    def __init__(self, freeze_bert=False, use_all_layer=True):
         super(MyModel, self).__init__()
-#         albert_xxlarge_configuration = AlbertConfig(output_hidden_states=True, output_attentions=True, return_dict=True)
-#         self.model = AlbertModel.from_pretrained(pretrained_model_name_or_path=MODEL_PATH, config=albert_xxlarge_configuration)
-#         self.model = RobertaModel.from_pretrained(pretrained_model_name_or_path=MODEL_PATH, output_hidden_states=True, output_attentions=True, return_dict=True)
+        self.use_all_layer = use_all_layer
         self.model = AutoModel.from_pretrained(pretrained_model_name_or_path=MODEL_PATH, output_hidden_states=True, output_attentions=True, return_dict=True)
         if freeze_bert:
             for p in self.model.parameters():
@@ -140,20 +138,11 @@ class MyModel(nn.Module):
         self.nn_dense = nn.Linear(self.model.config.hidden_size, 1)
         self.truncated_normal_(self.nn_dense.weight)
         self.act = nn.ReLU()
-        
-#         self.conv = nn.Conv2d(in_channels=13, out_channels=13, kernel_size=(3, 4096), padding=True)
-#         self.relu = nn.ReLU()
-#         self.pool = nn.MaxPool2d(kernel_size=3, stride=1)
-        self.dropout = nn.Dropout(0.2)
-#         self.fc = nn.Linear(1924, 3) # before : 442 with max_length 36 # 806 with max_length 64
-#         self.flat = nn.Flatten()
-#         self.fc_size = 1924
 
         # is_humour
         self.tower_1 = nn.Sequential(
             nn.Dropout(p=0.8),
             nn.Linear(self.model.config.hidden_size, 2),
-#             nn.Linear(self.fc_size, 2),
             nn.Softmax(dim=1)
         )
         
@@ -161,13 +150,11 @@ class MyModel(nn.Module):
         self.tower_2 = nn.Sequential(
             nn.Dropout(p=0.8),
             nn.Linear(self.model.config.hidden_size, 1)
-#             nn.Linear(self.fc_size, 1)
         )
         
         # humor_controversy
         self.tower_3 = nn.Sequential(
             nn.Dropout(p=0.8),
-#             nn.Linear(self.fc_size, 2),
             nn.Linear(self.model.config.hidden_size, 2),
             nn.Softmax(dim=1)
         )
@@ -175,7 +162,6 @@ class MyModel(nn.Module):
         # offense_rating
         self.tower_4 = nn.Sequential(
             nn.Dropout(p=0.8),
-#             nn.Linear(self.fc_size, 1)
             nn.Linear(self.model.config.hidden_size, 1)
         )
       
@@ -199,15 +185,17 @@ class MyModel(nn.Module):
         for layer in outputs.hidden_states[1:]:
             out = self.nn_dense(layer)
             layer_logits.append(self.act(out))
-#             layer_logits.append(out)
 
         layer_logits = torch.cat(layer_logits, axis=2)
         layer_dist = self.softmax_all_layer(layer_logits)
         seq_out = torch.cat([torch.unsqueeze(x, axis=2) for x in outputs.hidden_states[1:]], axis=2)
-        pooled_output = torch.matmul(torch.unsqueeze(layer_dist, axis=2), seq_out)
-        pooled_output = torch.squeeze(pooled_output, axis=2)
-        pooled_output = self.pooler_activation(self.pooler(pooled_output[:, 0])) if self.pooler is not None else None
-#         pooled_output = outputs.pooler_output
+        all_layer_output = torch.matmul(torch.unsqueeze(layer_dist, axis=2), seq_out)
+        all_layer_output = torch.squeeze(all_layer_output, axis=2)
+        all_layer_output = self.pooler_activation(self.pooler(all_layer_output[:, 0])) if self.pooler is not None else None
+        if not self.use_all_layer:
+            pooled_output = outputs.pooler_output
+        else:
+            pooled_output = all_layer_output
 
         output1 = self.tower_1(pooled_output)
         output2 = self.tower_2(pooled_output).clamp(0, 5)
@@ -446,7 +434,7 @@ if __name__ == '__main__':
 
      test_data_loader = create_data_loader(df, False, tokenizer, MAX_LEN, BATCH_SIZE)
 
-     model = MyModel()
+     model = MyModel(use_all_layer=False)
      if torch.cuda.device_count()>1:
           model=nn.DataParallel(model,device_ids=[1,2])
 
