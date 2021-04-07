@@ -16,6 +16,13 @@ RANDOM_SEED = 70
 BATCH_SIZE = 8
 MAX_LEN = 150
 EPOCHS = 15
+USE_ALL_LAYER = False
+WEIGHT_1A = 0.85
+WEIGHT_1B = 0.075
+WEIGHT_1C = 0
+WEIGHT_2A = 1 - (WEIGHT_1A + WEIGHT_1B + WEIGHT_1C)
+
+
 torch.cuda.current_device()
 device = torch.device('cuda:1' if torch.cuda.is_available() else 'cpu')
 
@@ -204,16 +211,15 @@ def train_epoch(
 #                              [targets[:,0].type(torch.cuda.LongTensor), targets[:,1][preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor), targets[:,3]]
 #                          )
         loss = 0
-
         loss1 = loss_fn_CE(output1, targets[:,0].type(torch.cuda.LongTensor))
         loss4 = loss_fn_MSE(output4, targets[:,3])
-        loss += 0.85*loss1 + 0.075*loss4
+        loss += WEIGHT_1A*loss1 + WEIGHT_1B*loss4
         if output2[preds1 == 1].numel():
-            
+
             loss2 = loss_fn_MSE(output2[preds1 == 1], targets[:,1][preds1 == 1])
-            
+
             loss3 = loss_fn_CE(output3[preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor))
-            loss += 0.075*loss2 + 0.0*loss3
+            loss += WEIGHT_1C*loss2 + WEIGHT_2A*loss3
             loss = loss
         else:
             loss = loss
@@ -285,13 +291,13 @@ def eval_model(model, mtl, data_loader, loss_fn_CE, loss_fn_MSE, device, n_examp
             loss = 0
             loss1 = loss_fn_CE(output1, targets[:,0].type(torch.cuda.LongTensor))
             loss4 = loss_fn_MSE(output4, targets[:,3])
-            loss += 0.85*loss1 + 0.075*loss4
+            loss += WEIGHT_1A*loss1 + WEIGHT_1B*loss4
             if output2[preds1 == 1].numel():
 
                 loss2 = loss_fn_MSE(output2[preds1 == 1], targets[:,1][preds1 == 1])
 
                 loss3 = loss_fn_CE(output3[preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor))
-                loss += 0.075*loss2 + 0.0*loss3
+                loss += WEIGHT_1C*loss2 + WEIGHT_2A*loss3
                 loss = loss
             else:
                 loss = loss
@@ -407,7 +413,7 @@ if __name__ == '__main__':
     test_data_loader = create_data_loader(df_test, tokenizer, MAX_LEN, BATCH_SIZE)
     data = next(iter(train_data_loader))
 
-    model = MyModel(use_all_layer=False)
+    model = MyModel(use_all_layer=USE_ALL_LAYER)
     #model.load_state_dict(torch.load('./best_model_state.bin'))
 
     if torch.cuda.device_count()>1:
