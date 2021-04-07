@@ -140,8 +140,8 @@ class MyModel(nn.Module):
         layer_dist = self.softmax_all_layer(layer_logits)
         seq_out = torch.cat([torch.unsqueeze(x, axis=2) for x in outputs.hidden_states[1:]], axis=2)
         all_layer_output = torch.matmul(torch.unsqueeze(layer_dist, axis=2), seq_out)
-        all_layer_output = torch.squeeze(pooled_output, axis=2)
-        all_layer_output = self.pooler_activation(self.pooler(pooled_output[:, 0])) if self.pooler is not None else None
+        all_layer_output = torch.squeeze(all_layer_output, axis=2)
+        all_layer_output = self.pooler_activation(self.pooler(all_layer_output[:, 0])) if self.pooler is not None else None
         if not self.use_all_layer:
             pooled_output = outputs.pooler_output
         else:
