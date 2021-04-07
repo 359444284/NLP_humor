@@ -451,7 +451,6 @@ if __name__ == '__main__':
      target_4 = target_4[['target_4']]
      own_result = pd.concat([text, label_1, target_1, label_2, target_2, label_3, target_3, label_4, target_4],axis=1)
 #      result = pd.concat([result,label_1],axis=1)
-     print(result)
      own_result.to_csv("result.csv")
 
 
