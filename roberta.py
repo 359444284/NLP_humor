@@ -36,9 +36,11 @@ def set_seed(seed):
     torch.cuda.manual_seed(seed)
 
 class GPReviewDataset(Dataset):
-    def __init__(self, reviews, targets, tokenizer, max_len):
-        self.reviews = reviews
-        self.targets = targets
+    def __init__(self, dataframe, with_label, tokenizer, max_len):
+        self.reviews=dataframe.text.to_numpy()
+        self.with_label = with_label
+        if with_label:
+          self.targets=dataframe.list.to_numpy()
         self.tokenizer = tokenizer
         self.max_len = max_len
 
@@ -47,7 +49,6 @@ class GPReviewDataset(Dataset):
 
     def __getitem__(self, item):
         review = str(self.reviews[item])
-        target = self.targets[item]
         encoding = self.tokenizer.encode_plus(
               review,
               add_special_tokens=True,
@@ -57,18 +58,25 @@ class GPReviewDataset(Dataset):
               return_attention_mask=True,
               return_tensors='pt',
         )
+        
+        if self.with_label:
+             return {
+                 'review_text': review,
+                 'input_ids': encoding['input_ids'].flatten(),
+                 'attention_mask': encoding['attention_mask'].flatten(),
+                 'targets': torch.tensor(self.targets[item], dtype=torch.float)
+             }
+        else:
+             return {
+                 'review_text': review,
+                 'input_ids': encoding['input_ids'].flatten(),
+                 'attention_mask': encoding['attention_mask'].flatten(),
+             }
 
-        return{
-            'review_text': review,
-            'input_ids': encoding['input_ids'].flatten(),
-            'attention_mask': encoding['attention_mask'].flatten(),
-            'targets': torch.tensor(target, dtype=torch.float)
-        }
-
-def create_data_loader(df, tokenizer, max_len, batch_size):
+def create_data_loader(df, with_label, tokenizer, max_len, batch_size):
     ds = GPReviewDataset(
-        reviews=df.text.to_numpy(),
-        targets=df.list.to_numpy(),
+        df,
+        with_label,
         tokenizer=tokenizer,
         max_len=max_len
     )
