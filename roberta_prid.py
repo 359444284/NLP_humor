@@ -204,98 +204,7 @@ class MyModel(nn.Module):
         return output1, output2, output3, output4
 #         return output3
 
-
-def train_epoch(
-    model,
-    mtl,
-    data_loader,
-    loss_fn_CE,
-    loss_fn_MSE,
-    optimizer,
-    device,
-    scheduler,
-    n_examples
-):
-    model = model.train()
-    losses = []
-    correct_predictions1 = 0
-    correct_predictions2 = 0
-
-    for d in data_loader:
-        input_ids = d["input_ids"].to(device)
-        attention_mask = d["attention_mask"].to(device)
-        targets = d["targets"].to(device)
-        output1, output2, output3, output4 = model(
-          input_ids=input_ids,
-          attention_mask=attention_mask
-        )
-        output2 = output2[:,0]
-        output4 = output4[:,0]
-        _, preds1 = torch.max(output1, dim=1)
-        mes1 = (output2 - targets[:,1]).norm(2).pow(2)
-        _, preds3 = torch.max(output3, dim=1)
-        mes2 = (output4 - targets[:,3]).norm(2).pow(2)
-        
-        loss, log_vars = mtl(output1,
-                             output2[preds1 == 1],
-                             output3[preds1 == 1],
-                             output4,
-                             [targets[:,0].type(torch.cuda.LongTensor), targets[:,1][preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor), targets[:,3]]
-                         )
-
-        correct_predictions1 += torch.sum(preds1 == targets[:,0])
-        acc1 = correct_predictions1.double() / n_examples
-        correct_predictions2 += torch.sum(preds3 == targets[:,2])
-        acc2 = correct_predictions2.double() / n_examples
-
-
-        losses.append(loss.item())
-        loss.backward()
-        nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
-        optimizer.step()
-        scheduler.step()
-        optimizer.zero_grad()
-    return acc1, mes1, acc2, mes2, np.mean(losses)
-
-def eval_model(model, mtl, data_loader, loss_fn_CE, loss_fn_MSE, device, n_examples):
-    model = model.eval()
-    losses = []
-    correct_predictions1 = 0
-    correct_predictions2 = 0
-
-    with torch.no_grad():
-        for d in data_loader:
-            input_ids = d["input_ids"].to(device)
-            attention_mask = d["attention_mask"].to(device)
-            targets = d["targets"].to(device)
-            output1, output2, output3, output4 = model(
-            input_ids=input_ids,
-            attention_mask=attention_mask
-            )
-            output2 = output2[:,0]
-            output4 = output4[:,0]
-         
-            _, preds1 = torch.max(output1, dim=1)
-            mes1 = (output2 - targets[:,1]).norm(2).pow(2)
-            _, preds3 = torch.max(output3, dim=1)
-            mes2 = (output4 - targets[:,3]).norm(2).pow(2)
-
-            loss, log_vars = mtl(output1,
-                             output2[preds1 == 1],
-                             output3[preds1 == 1],
-                             output4,
-                             [targets[:,0].type(torch.cuda.LongTensor), targets[:,1][preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor), targets[:,3]]
-                         )
-
-            correct_predictions1 += torch.sum(preds1 == targets[:,0])
-            acc1 = correct_predictions1.double() / n_examples
-            correct_predictions2 += torch.sum(preds3 == targets[:,2])
-            acc2 = correct_predictions2.double() / n_examples
-
-            losses.append(loss.item())
-    return acc1, mes1, acc2, mes2, np.mean(losses)
-
-def get_predictions(model, data_loader):
+def get_predictions(model, with_label, data_loader):
     model = model.eval()
     review_texts = []
     predictions = []
@@ -303,6 +212,12 @@ def get_predictions(model, data_loader):
     p2 = []
     p3 = []
     p4 = []
+    if with_label:
+         r1 = []
+         r2 = []
+         r3 = []
+         r4 = []
+         real_values = []
 
     with torch.no_grad():
         for d in data_loader:
@@ -326,68 +241,83 @@ def get_predictions(model, data_loader):
             p2.extend(output2)
             p3.extend(preds3)
             p4.extend(output4)
-
+            if with_label:
+               targets = d["targets"].to(device)
+               r1.extend(targets[:,0])
+               r2.extend(targets[:,1])
+               r3.extend(targets[:,2])
+               r4.extend(targets[:,3])
+    
     p1 = torch.stack(p1).cpu()
     p2 = torch.stack(p2).cpu()
     p3 = torch.stack(p3).cpu()
     p4 = torch.stack(p4).cpu()
     predictions = [p1,p2,p3,p4]
-#     predictions = [p1]
+    if with_label:
+         r1 = torch.stack(r1).cpu()
+         r2 = torch.stack(r2).cpu()
+         r3 = torch.stack(r3).cpu()
+         r4 = torch.stack(r4).cpu()
+         real_values = [r1,r2,r3,r4]
 
-    return review_texts, predictions
+         return review_texts, predictions, real_values
+    else:
+         return review_texts, predictions
 
-def get_predictions1(model, data_loader):
-    model = model.eval()
-    review_texts = []
-    predictions = []
-    p1 = []
-    p2 = []
-    p3 = []
-    p4 = []
-    r1 = []
-    r2 = []
-    r3 = []
-    r4 = []
-    real_values = []
-    with torch.no_grad():
-        for d in data_loader:
-            texts = d["review_text"]
-            input_ids = d["input_ids"].to(device)
-            attention_mask = d["attention_mask"].to(device)
-            targets = d["targets"].to(device)
-            output1, output2, output3, output4 = model(
-#             output1 = model(
-                input_ids=input_ids,
-                attention_mask=attention_mask
-            )
-            
-            output2 = output2[:,0]
-            output4 = output4[:,0]
-            
-            _, preds1 = torch.max(output1, dim=1)
-            _, preds3 = torch.max(output3, dim=1)
-            
-            review_texts.extend(texts)
-            p1.extend(preds1)
-            p2.extend(output2)
-            p3.extend(preds3)
-            p4.extend(output4)
-            r1.extend(targets[:,0])
-            r2.extend(targets[:,1])
-            r3.extend(targets[:,2])
-            r4.extend(targets[:,3])
-    p1 = torch.stack(p1).cpu()
-    p2 = torch.stack(p2).cpu()
-    p3 = torch.stack(p3).cpu()
-    p4 = torch.stack(p4).cpu()
-    r1 = torch.stack(r1).cpu()
-    r2 = torch.stack(r2).cpu()
-    r3 = torch.stack(r3).cpu()
-    r4 = torch.stack(r4).cpu()
-    predictions = [p1,p2,p3,p4]
-    real_values = [r1,r2,r3,r4]
 
-    return review_texts, predictions, real_values
+
+# def get_predictions1(model, data_loader):
+#     model = model.eval()
+#     review_texts = []
+#     predictions = []
+#     p1 = []
+#     p2 = []
+#     p3 = []
+#     p4 = []
+#     r1 = []
+#     r2 = []
+#     r3 = []
+#     r4 = []
+#     real_values = []
+#     with torch.no_grad():
+#         for d in data_loader:
+#             texts = d["review_text"]
+#             input_ids = d["input_ids"].to(device)
+#             attention_mask = d["attention_mask"].to(device)
+#             targets = d["targets"].to(device)
+#             output1, output2, output3, output4 = model(
+# #             output1 = model(
+#                 input_ids=input_ids,
+#                 attention_mask=attention_mask
+#             )
+            
+#             output2 = output2[:,0]
+#             output4 = output4[:,0]
+            
+#             _, preds1 = torch.max(output1, dim=1)
+#             _, preds3 = torch.max(output3, dim=1)
+            
+#             review_texts.extend(texts)
+#             p1.extend(preds1)
+#             p2.extend(output2)
+#             p3.extend(preds3)
+#             p4.extend(output4)
+#             r1.extend(targets[:,0])
+#             r2.extend(targets[:,1])
+#             r3.extend(targets[:,2])
+#             r4.extend(targets[:,3])
+#     p1 = torch.stack(p1).cpu()
+#     p2 = torch.stack(p2).cpu()
+#     p3 = torch.stack(p3).cpu()
+#     p4 = torch.stack(p4).cpu()
+#     r1 = torch.stack(r1).cpu()
+#     r2 = torch.stack(r2).cpu()
+#     r3 = torch.stack(r3).cpu()
+#     r4 = torch.stack(r4).cpu()
+#     predictions = [p1,p2,p3,p4]
+#     real_values = [r1,r2,r3,r4]
+
+#     return review_texts, predictions, real_values
 
 
 class MultiTaskLossWrapper(nn.Module):
@@ -451,6 +381,7 @@ if __name__ == '__main__':
 
      y_review_texts, y_pred= get_predictions(
           model,
+          False,
           test_data_loader
      )
 
@@ -489,8 +420,9 @@ if __name__ == '__main__':
      data1 = next(iter(train_data_loader))
 
 
-     y_review_texts, y_pred, y_test = get_predictions1(
+     y_review_texts, y_pred, y_test = get_predictions(
        model,
+       True,
        own_test_data_loader
      )
 
