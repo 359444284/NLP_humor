@@ -73,11 +73,9 @@ def create_data_loader(df, tokenizer, max_len, batch_size):
     )
 
 class MyModel(nn.Module):
-    def __init__(self, freeze_bert=False):
+    def __init__(self, freeze_bert=False, use_all_layer = True):
         super(MyModel, self).__init__()
-#         albert_xxlarge_configuration = AlbertConfig(output_hidden_states=True, output_attentions=True, return_dict=True)
-#         self.model = AlbertModel.from_pretrained(pretrained_model_name_or_path=MODEL_PATH, config=albert_xxlarge_configuration)
-#         self.model = RobertaModel.from_pretrained(pretrained_model_name_or_path=MODEL_PATH, output_hidden_states=True, output_attentions=True, return_dict=True)
+        self.use_all_layer = use_all_layer
         self.model = AutoModel.from_pretrained(pretrained_model_name_or_path=MODEL_PATH, output_hidden_states=True, output_attentions=True, return_dict=True)
         if freeze_bert:
             for p in self.model.parameters():
@@ -142,7 +140,7 @@ class MyModel(nn.Module):
         for layer in outputs.hidden_states[1:]:
             out = self.nn_dense(layer)
             layer_logits.append(self.act(out))
-#             layer_logits.append(out)
+            layer_logits.append(out)
 
         layer_logits = torch.cat(layer_logits, axis=2)
         layer_dist = self.softmax_all_layer(layer_logits)
@@ -150,7 +148,9 @@ class MyModel(nn.Module):
         pooled_output = torch.matmul(torch.unsqueeze(layer_dist, axis=2), seq_out)
         pooled_output = torch.squeeze(pooled_output, axis=2)
         pooled_output = self.pooler_activation(self.pooler(pooled_output[:, 0])) if self.pooler is not None else None
-#         pooled_output = outputs.pooler_output
+        if not self.use_all_layer:
+            pooled_output = outputs.pooler_output
+        
 
         output1 = self.tower_1(pooled_output)
         output2 = self.tower_2(pooled_output).clamp(0, 5)
@@ -212,13 +212,13 @@ def train_epoch(
 
         loss1 = loss_fn_CE(output1, targets[:,0].type(torch.cuda.LongTensor))
         loss4 = loss_fn_MSE(output4, targets[:,3])
-        loss += 0.95*loss1 + 0.05*loss4
+        loss += 0.85*loss1 + 0.075*loss4
         if output2[preds1 == 1].numel():
             
             loss2 = loss_fn_MSE(output2[preds1 == 1], targets[:,1][preds1 == 1])
             
             loss3 = loss_fn_CE(output3[preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor))
-            loss += 0.0*loss2 + 0.0*loss3
+            loss += 0.075*loss2 + 0.0*loss3
             loss = loss
         else:
             loss = loss
@@ -290,13 +290,13 @@ def eval_model(model, mtl, data_loader, loss_fn_CE, loss_fn_MSE, device, n_examp
             loss = 0
             loss1 = loss_fn_CE(output1, targets[:,0].type(torch.cuda.LongTensor))
             loss4 = loss_fn_MSE(output4, targets[:,3])
-            loss += 0.95*loss1 + 0.05*loss4
+            loss += 0.85*loss1 + 0.075*loss4
             if output2[preds1 == 1].numel():
 
                 loss2 = loss_fn_MSE(output2[preds1 == 1], targets[:,1][preds1 == 1])
 
                 loss3 = loss_fn_CE(output3[preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor))
-                loss += 0.0*loss2 + 0.0*loss3
+                loss += 0.075*loss2 + 0.0*loss3
                 loss = loss
             else:
                 loss = loss
@@ -412,7 +412,7 @@ if __name__ == '__main__':
     test_data_loader = create_data_loader(df_test, tokenizer, MAX_LEN, BATCH_SIZE)
     data = next(iter(train_data_loader))
 
-    model = MyModel()
+    model = MyModel(use_all_layer=Flase)
     #model.load_state_dict(torch.load('./best_model_state.bin'))
 
     if torch.cuda.device_count()>1:
