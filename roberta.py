@@ -412,7 +412,7 @@ if __name__ == '__main__':
     test_data_loader = create_data_loader(df_test, tokenizer, MAX_LEN, BATCH_SIZE)
     data = next(iter(train_data_loader))
 
-    model = MyModel(use_all_layer=Flase)
+    model = MyModel(use_all_layer=False)
     #model.load_state_dict(torch.load('./best_model_state.bin'))
 
     if torch.cuda.device_count()>1:
