@@ -127,8 +127,8 @@ class MyModel(nn.Module):
         super(MyModel, self).__init__()
 #         albert_xxlarge_configuration = AlbertConfig(output_hidden_states=True, output_attentions=True, return_dict=True)
 #         self.model = AlbertModel.from_pretrained(pretrained_model_name_or_path=MODEL_PATH, config=albert_xxlarge_configuration)
-#         self.model = RobertaModel.from_pretrained(pretrained_model_name_or_path=MODEL_PATH, output_hidden_states=True, output_attentions=True, return_dict=True)
-        self.model = AutoModel.from_pretrained(pretrained_model_name_or_path=MODEL_PATH, output_hidden_states=True, output_attentions=True, return_dict=True)
+        self.model = RobertaModel.from_pretrained(pretrained_model_name_or_path=MODEL_PATH, output_hidden_states=True, output_attentions=True, return_dict=True)
+#         self.model = AutoModel.from_pretrained(pretrained_model_name_or_path=MODEL_PATH, output_hidden_states=True, output_attentions=True, return_dict=True)
         if freeze_bert:
             for p in self.model.parameters():
                 p.requires_grad = False
