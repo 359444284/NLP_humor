@@ -224,8 +224,8 @@ def get_predictions(model, with_label, data_loader):
             texts = d["review_text"]
             input_ids = d["input_ids"].to(device)
             attention_mask = d["attention_mask"].to(device)
-            output1, output2, output3, output4 = model(
-#             output1 = model(
+#             output1, output2, output3, output4 = model(
+            output1 = model(
                 input_ids=input_ids,
                 attention_mask=attention_mask
             )
