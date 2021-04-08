@@ -496,8 +496,8 @@ if __name__ == '__main__':
     for epoch in range(EPOCHS):
         print(f'Epoch {epoch + 1}/{EPOCHS}')
         print('-' * 10)
-        train_acc_1, train_mse_1, train_acc_2, train_mse_2, train_loss = train_epoch(
-#         train_acc_1, train_loss = train_epoch(
+#         train_acc_1, train_mse_1, train_acc_2, train_mse_2, train_loss = train_epoch(
+        train_acc_1, train_loss = train_epoch(
             model,
             mtl,
             train_data_loader,
