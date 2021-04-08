@@ -202,7 +202,7 @@ class MyModel(nn.Module):
         output3 = self.tower_3(pooled_output)
         output4 = self.tower_4(pooled_output).clamp(0, 5)
 #         return output1, output2, output3, output4
-        return output3
+        return output1
 
 def get_predictions(model, with_label, data_loader):
     model = model.eval()
