@@ -104,27 +104,27 @@ class MyModel(nn.Module):
 
         # is_humour
         self.tower_1 = nn.Sequential(
-            nn.Dropout(p=0.8),
+            nn.Dropout(p=0.3),
             nn.Linear(self.model.config.hidden_size, 2),
             nn.Softmax(dim=1)
         )
         
         # humor_rating
         self.tower_2 = nn.Sequential(
-            nn.Dropout(p=0.8),
+            nn.Dropout(p=0.3),
             nn.Linear(self.model.config.hidden_size, 1)
         )
         
         # humor_controversy
         self.tower_3 = nn.Sequential(
-            nn.Dropout(p=0.8),
+            nn.Dropout(p=0.3),
             nn.Linear(self.model.config.hidden_size, 2),
             nn.Softmax(dim=1)
         )
         
         # offense_rating
         self.tower_4 = nn.Sequential(
-            nn.Dropout(p=0.8),
+            nn.Dropout(p=0.3),
             nn.Linear(self.model.config.hidden_size, 1)
         )
       
