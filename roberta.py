@@ -600,5 +600,64 @@ if __name__ == '__main__':
 #                 best_accuracy_1 = val_acc_1
 #                 best_accuracy_2 = val_acc_2
 
+     model.load_state_dict(torch.load('./best_model_state.bin'))
+
+     model = model.to(device)
+
+     y_review_texts, y_pred= get_predictions(
+          model,
+          False,
+          test_data_loader
+     )
+
+     result = pd.read_csv("./public_test.csv", header=0)
+     label_1 = pd.DataFrame({'is_humor':y_pred[0]})
+     label_1 = label_1[['is_humor']]
+#      label_2 = pd.DataFrame({'humor_rating':y_pred[1]})
+#      label_2 = label_2[['humor_rating']]
+#      label_3 = pd.DataFrame({'humor_controversy':y_pred[2]})
+#      label_3 = label_3[['humor_controversy']]
+#      label_4 = pd.DataFrame({'offense_rating':y_pred[3]})
+#      label_4 = label_4[['offense_rating']]
+#      result = pd.concat([result,label_1,label_2,label_3,label_4],axis=1)
+     result = pd.concat([result,label_1],axis=1)
+     print(result)
+     result.to_csv("task1a.csv")
+
+     y_review_texts, y_pred, y_test = get_predictions(
+       model,
+       True,
+       test_data_loader
+     )
+
+     print(classification_report(y_test[0], y_pred[0], target_names=class_names_1))
+#      print((y_test[1] - y_pred[1]).norm(2).pow(2))
+#      print(classification_report(y_test[2], y_pred[2], target_names=class_names_2))
+#      print((y_test[3] - y_pred[3]).norm(2).pow(2))
+     
+     text = pd.DataFrame({'text':y_review_texts})
+     text = text[['text']]
+     label_1 = pd.DataFrame({'is_humor':y_pred[0]})
+     label_1 = label_1[['is_humor']]
+#      label_2 = pd.DataFrame({'humor_rating':y_pred[1]})
+#      label_2 = label_2[['humor_rating']]
+#      label_3 = pd.DataFrame({'humor_controversy':y_pred[2]})
+#      label_3 = label_3[['humor_controversy']]
+#      label_4 = pd.DataFrame({'offense_rating':y_pred[3]})
+#      label_4 = label_4[['offense_rating']]
+     target_1 = pd.DataFrame({'target_1':y_test[0]})
+     target_1 = target_1[['target_1']]
+#      target_2 = pd.DataFrame({'target_2':y_test[1]})
+#      target_2 = target_2[['target_2']]
+#      target_3 = pd.DataFrame({'target_3':y_test[2]})
+#      target_3 = target_3[['target_3']]
+#      target_4 = pd.DataFrame({'target_4':y_test[3]})
+#      target_4 = target_4[['target_4']]
+#      own_result = pd.concat([text, label_1, target_1, label_2, target_2, label_3, target_3, label_4, target_4],axis=1)
+     own_result = pd.concat([text, label_1, target_1],axis=1)
+#      result = pd.concat([result,label_1],axis=1)
+     own_result.to_csv("result.csv")
+
+
 
 
