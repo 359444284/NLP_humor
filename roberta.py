@@ -142,7 +142,8 @@ class MyModel(nn.Module):
             nn.Dropout(p=0.6),
             nn.Linear(self.model.config.hidden_size, 1)
         )
-      
+    
+    # this function is adapted form https://zhuanlan.zhihu.com/p/83609874
     def truncated_normal_(self,tensor,mean=0,std=0.02):
         with torch.no_grad():
             size = tensor.shape
