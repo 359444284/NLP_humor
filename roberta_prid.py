@@ -201,8 +201,8 @@ class MyModel(nn.Module):
         output2 = self.tower_2(pooled_output).clamp(0, 5)
         output3 = self.tower_3(pooled_output)
         output4 = self.tower_4(pooled_output).clamp(0, 5)
-        return output1, output2, output3, output4
-#         return output3
+#         return output1, output2, output3, output4
+        return output3
 
 def get_predictions(model, with_label, data_loader):
     model = model.eval()
@@ -238,26 +238,26 @@ def get_predictions(model, with_label, data_loader):
             
             review_texts.extend(texts)
             p1.extend(preds1)
-            p2.extend(output2)
-            p3.extend(preds3)
-            p4.extend(output4)
+#             p2.extend(output2)
+#             p3.extend(preds3)
+#             p4.extend(output4)
             if with_label:
                targets = d["targets"].to(device)
                r1.extend(targets[:,0])
-               r2.extend(targets[:,1])
-               r3.extend(targets[:,2])
-               r4.extend(targets[:,3])
+#                r2.extend(targets[:,1])
+#                r3.extend(targets[:,2])
+#                r4.extend(targets[:,3])
     
     p1 = torch.stack(p1).cpu()
-    p2 = torch.stack(p2).cpu()
-    p3 = torch.stack(p3).cpu()
-    p4 = torch.stack(p4).cpu()
+#     p2 = torch.stack(p2).cpu()
+#     p3 = torch.stack(p3).cpu()
+#     p4 = torch.stack(p4).cpu()
     predictions = [p1,p2,p3,p4]
     if with_label:
          r1 = torch.stack(r1).cpu()
-         r2 = torch.stack(r2).cpu()
-         r3 = torch.stack(r3).cpu()
-         r4 = torch.stack(r4).cpu()
+#          r2 = torch.stack(r2).cpu()
+#          r3 = torch.stack(r3).cpu()
+#          r4 = torch.stack(r4).cpu()
          real_values = [r1,r2,r3,r4]
 
          return review_texts, predictions, real_values
@@ -388,14 +388,14 @@ if __name__ == '__main__':
      result = pd.read_csv("./public_test.csv", header=0)
      label_1 = pd.DataFrame({'is_humor':y_pred[0]})
      label_1 = label_1[['is_humor']]
-     label_2 = pd.DataFrame({'humor_rating':y_pred[1]})
-     label_2 = label_2[['humor_rating']]
-     label_3 = pd.DataFrame({'humor_controversy':y_pred[2]})
-     label_3 = label_3[['humor_controversy']]
-     label_4 = pd.DataFrame({'offense_rating':y_pred[3]})
-     label_4 = label_4[['offense_rating']]
-     result = pd.concat([result,label_1,label_2,label_3,label_4],axis=1)
-#      result = pd.concat([result,label_1],axis=1)
+#      label_2 = pd.DataFrame({'humor_rating':y_pred[1]})
+#      label_2 = label_2[['humor_rating']]
+#      label_3 = pd.DataFrame({'humor_controversy':y_pred[2]})
+#      label_3 = label_3[['humor_controversy']]
+#      label_4 = pd.DataFrame({'offense_rating':y_pred[3]})
+#      label_4 = label_4[['offense_rating']]
+#      result = pd.concat([result,label_1,label_2,label_3,label_4],axis=1)
+     result = pd.concat([result,label_1],axis=1)
      print(result)
      result.to_csv("task1a.csv")
 
@@ -427,29 +427,30 @@ if __name__ == '__main__':
      )
 
      print(classification_report(y_test[0], y_pred[0], target_names=class_names_1))
-     print((y_test[1] - y_pred[1]).norm(2).pow(2))
-     print(classification_report(y_test[2], y_pred[2], target_names=class_names_2))
-     print((y_test[3] - y_pred[3]).norm(2).pow(2))
+#      print((y_test[1] - y_pred[1]).norm(2).pow(2))
+#      print(classification_report(y_test[2], y_pred[2], target_names=class_names_2))
+#      print((y_test[3] - y_pred[3]).norm(2).pow(2))
      
      text = pd.DataFrame({'text':y_review_texts})
      text = text[['text']]
      label_1 = pd.DataFrame({'is_humor':y_pred[0]})
      label_1 = label_1[['is_humor']]
-     label_2 = pd.DataFrame({'humor_rating':y_pred[1]})
-     label_2 = label_2[['humor_rating']]
-     label_3 = pd.DataFrame({'humor_controversy':y_pred[2]})
-     label_3 = label_3[['humor_controversy']]
-     label_4 = pd.DataFrame({'offense_rating':y_pred[3]})
-     label_4 = label_4[['offense_rating']]
+#      label_2 = pd.DataFrame({'humor_rating':y_pred[1]})
+#      label_2 = label_2[['humor_rating']]
+#      label_3 = pd.DataFrame({'humor_controversy':y_pred[2]})
+#      label_3 = label_3[['humor_controversy']]
+#      label_4 = pd.DataFrame({'offense_rating':y_pred[3]})
+#      label_4 = label_4[['offense_rating']]
      target_1 = pd.DataFrame({'target_1':y_test[0]})
      target_1 = target_1[['target_1']]
-     target_2 = pd.DataFrame({'target_2':y_test[1]})
-     target_2 = target_2[['target_2']]
-     target_3 = pd.DataFrame({'target_3':y_test[2]})
-     target_3 = target_3[['target_3']]
-     target_4 = pd.DataFrame({'target_4':y_test[3]})
-     target_4 = target_4[['target_4']]
-     own_result = pd.concat([text, label_1, target_1, label_2, target_2, label_3, target_3, label_4, target_4],axis=1)
+#      target_2 = pd.DataFrame({'target_2':y_test[1]})
+#      target_2 = target_2[['target_2']]
+#      target_3 = pd.DataFrame({'target_3':y_test[2]})
+#      target_3 = target_3[['target_3']]
+#      target_4 = pd.DataFrame({'target_4':y_test[3]})
+#      target_4 = target_4[['target_4']]
+#      own_result = pd.concat([text, label_1, target_1, label_2, target_2, label_3, target_3, label_4, target_4],axis=1)
+     own_result = pd.concat([text, label_1, target_1],axis=1)
 #      result = pd.concat([result,label_1],axis=1)
      own_result.to_csv("result.csv")
 
