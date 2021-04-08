@@ -600,6 +600,14 @@ if __name__ == '__main__':
 #                 best_accuracy_1 = val_acc_1
 #                 best_accuracy_2 = val_acc_2
 
+     df = pd.read_csv("./public_test.csv")
+     df = df[['text']]
+
+     class_names_1 = ['is_humor', 'not_humor']
+     class_names_2 = ['is_CON', 'not_CON']
+
+     final_test_data_loader = create_data_loader(df, False, tokenizer, MAX_LEN, BATCH_SIZE)
+    
      model.load_state_dict(torch.load('./best_model_state.bin'))
 
      model = model.to(device)
@@ -607,7 +615,7 @@ if __name__ == '__main__':
      y_review_texts, y_pred= get_predictions(
           model,
           False,
-          test_data_loader
+          final_test_data_loader
      )
 
      result = pd.read_csv("./public_test.csv", header=0)
