@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 RANDOM_SEED = 70
 BATCH_SIZE = 8
 MAX_LEN = 150
-EPOCHS = 15
+EPOCHS = 20
 USE_ALL_LAYER = True
 WEIGHT_1A = 1.0
 WEIGHT_1B = 0.0
