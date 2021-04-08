@@ -106,27 +106,27 @@ class MyModel(nn.Module):
 
         # is_humour
         self.tower_1 = nn.Sequential(
-            nn.Dropout(p=0.8),
+            nn.Dropout(p=0.3),
             nn.Linear(self.model.config.hidden_size, 2),
             nn.Softmax(dim=1)
         )
         
         # humor_rating
         self.tower_2 = nn.Sequential(
-            nn.Dropout(p=0.8),
+            nn.Dropout(p=0.3),
             nn.Linear(self.model.config.hidden_size, 1)
         )
         
         # humor_controversy
         self.tower_3 = nn.Sequential(
-            nn.Dropout(p=0.8),
+            nn.Dropout(p=0.3),
             nn.Linear(self.model.config.hidden_size, 2),
             nn.Softmax(dim=1)
         )
         
         # offense_rating
         self.tower_4 = nn.Sequential(
-            nn.Dropout(p=0.8),
+            nn.Dropout(p=0.3),
             nn.Linear(self.model.config.hidden_size, 1)
         )
       
@@ -396,8 +396,8 @@ if __name__ == '__main__':
 
     set_seed(RANDOM_SEED)
 
-#     MODEL_PATH = 'roberta-large'
-    MODEL_PATH = 'albert-xxlarge-v2'
+    MODEL_PATH = 'roberta-large'
+#     MODEL_PATH = 'albert-xxlarge-v2'
     tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH, output_hidden_states=True, return_dict=True)
 
     df = pd.read_csv("./datas/task1/train/train.csv")
