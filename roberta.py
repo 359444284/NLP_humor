@@ -327,6 +327,66 @@ def eval_model(model, mtl, data_loader, loss_fn_CE, loss_fn_MSE, device, n_examp
 #     return acc1, mes1, acc2, mes2, np.mean(losses)
     return acc1, np.mean(losses)
 
+def get_predictions(model, with_label, data_loader):
+    model = model.eval()
+    review_texts = []
+    predictions = []
+    p1 = []
+    p2 = []
+    p3 = []
+    p4 = []
+    if with_label:
+         r1 = []
+         r2 = []
+         r3 = []
+         r4 = []
+         real_values = []
+
+    with torch.no_grad():
+        for d in data_loader:
+            texts = d["review_text"]
+            input_ids = d["input_ids"].to(device)
+            attention_mask = d["attention_mask"].to(device)
+#             output1, output2, output3, output4 = model(
+            output1 = model(
+                input_ids=input_ids,
+                attention_mask=attention_mask
+            )
+            
+#             output2 = output2[:,0]
+#             output4 = output4[:,0]
+            
+            _, preds1 = torch.max(output1, dim=1)
+#             _, preds3 = torch.max(output3, dim=1)
+            
+            review_texts.extend(texts)
+            p1.extend(preds1)
+#             p2.extend(output2)
+#             p3.extend(preds3)
+#             p4.extend(output4)
+            if with_label:
+               targets = d["targets"].to(device)
+               r1.extend(targets[:,0])
+#                r2.extend(targets[:,1])
+#                r3.extend(targets[:,2])
+#                r4.extend(targets[:,3])
+    
+    p1 = torch.stack(p1).cpu()
+#     p2 = torch.stack(p2).cpu()
+#     p3 = torch.stack(p3).cpu()
+#     p4 = torch.stack(p4).cpu()
+    predictions = [p1,p2,p3,p4]
+    if with_label:
+         r1 = torch.stack(r1).cpu()
+#          r2 = torch.stack(r2).cpu()
+#          r3 = torch.stack(r3).cpu()
+#          r4 = torch.stack(r4).cpu()
+         real_values = [r1,r2,r3,r4]
+
+         return review_texts, predictions, real_values
+    else:
+         return review_texts, predictions
+
 
 class MultiTaskLossWrapper(nn.Module):
     def __init__(self, task_num, loss_function_CE):
