@@ -9,7 +9,7 @@ from torch.utils.data import DataLoader, Dataset
 from transformers import AdamW, get_linear_schedule_with_warmup, AutoModel, AutoTokenizer
 import numpy as np
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import confusion_matrix, classification_report
+from sklearn.metrics import confusion_matrix, classification_report, mean_squared_error
 from collections import defaultdict
 import pandas as pd
 import random
@@ -256,53 +256,53 @@ def train_epoch(
 
 # Adapted from Venelin's blog: eval step
 def eval_model(model, mtl, data_loader, loss_fn_CE, loss_fn_MSE, device, n_examples):
-    model = model.eval()
-    losses = []
-    correct_predictions1 = 0
-    correct_predictions2 = 0
+        model = model.eval()
+        losses = []
+        correct_predictions1 = 0
+        correct_predictions2 = 0
 
-    with torch.no_grad():
-        for d in data_loader:
-            input_ids = d["input_ids"].to(device)
-            attention_mask = d["attention_mask"].to(device)
-            targets = d["targets"].to(device)
-            output1, output2, output3, output4 = model(
-              input_ids=input_ids,
-              attention_mask=attention_mask
-            )
-            output2 = output2[:,0]
-            output4 = output4[:,0]
+        with torch.no_grad():
+            for d in data_loader:
+                input_ids = d["input_ids"].to(device)
+                attention_mask = d["attention_mask"].to(device)
+                targets = d["targets"].to(device)
+                output1, output2, output3, output4 = model(
+                  input_ids=input_ids,
+                  attention_mask=attention_mask
+                )
+                output2 = output2[:,0]
+                output4 = output4[:,0]
 
-            _, preds1 = torch.max(output1, dim=1)
-            mes1 = (output2 - targets[:,1]).norm(2).pow(2)
-            _, preds3 = torch.max(output3, dim=1)
-            mes2 = (output4 - targets[:,3]).norm(2).pow(2)
-        
-            if Weight_By_Uncertainty:
-                    loss = mtl(output1,
-                                         output2[preds1 == 1],
-                                         output3[preds1 == 1],
-                                         output4,
-                                         [targets[:,0].type(torch.cuda.LongTensor), targets[:,1][preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor), targets[:,3]]
-                              )
-            else:
-                    loss = 0
-                    loss1 = loss_fn_CE(output1, targets[:,0].type(torch.cuda.LongTensor))
-                    loss4 = loss_fn_MSE(output4, targets[:,3])
-                    loss += WEIGHT_1A*loss1 + WEIGHT_2A*loss4
-                    if output2[preds1 == 1].numel():
+                _, preds1 = torch.max(output1, dim=1)
+                mes1 = (output2 - targets[:,1]).norm(2).pow(2)
+                _, preds3 = torch.max(output3, dim=1)
+                mes2 = (output4 - targets[:,3]).norm(2).pow(2)
 
-                        loss2 = loss_fn_MSE(output2[preds1 == 1], targets[:,1][preds1 == 1])
-                        loss3 = loss_fn_CE(output3[preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor))
-                        loss += WEIGHT_1B*loss2 + WEIGHT_1C*loss3
+                if Weight_By_Uncertainty:
+                        loss = mtl(output1,
+                                   output2[preds1 == 1],
+                                   output3[preds1 == 1],
+                                   output4,
+                                   [targets[:,0].type(torch.cuda.LongTensor), targets[:,1][preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor), targets[:,3]]
+                                  )
+                else:
+                        loss = 0
+                        loss1 = loss_fn_CE(output1, targets[:,0].type(torch.cuda.LongTensor))
+                        loss4 = loss_fn_MSE(output4, targets[:,3])
+                        loss += WEIGHT_1A*loss1 + WEIGHT_2A*loss4
+                        if output2[preds1 == 1].numel():
 
-                correct_predictions1 += torch.sum(preds1 == targets[:,0])
-                acc1 = correct_predictions1.double() / n_examples
-                correct_predictions2 += torch.sum(preds3 == targets[:,2])
-                acc2 = correct_predictions2.double() / n_examples
+                            loss2 = loss_fn_MSE(output2[preds1 == 1], targets[:,1][preds1 == 1])
+                            loss3 = loss_fn_CE(output3[preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor))
+                            loss += WEIGHT_1B*loss2 + WEIGHT_1C*loss3
 
-                losses.append(loss.item())
-    return acc1, mes1, acc2, mes2, np.mean(losses)
+        correct_predictions1 += torch.sum(preds1 == targets[:,0])
+        acc1 = correct_predictions1.double() / n_examples
+        correct_predictions2 += torch.sum(preds3 == targets[:,2])
+        acc2 = correct_predictions2.double() / n_examples
+
+        losses.append(loss.item())
+        return acc1, mes1, acc2, mes2, np.mean(losses)
 
 # Adapted from Venelin's blog: predict the labels
 def get_predictions(model, with_label, data_loader):
@@ -538,11 +538,11 @@ if __name__ == '__main__':
        True,
        test_data_loader
     )
-
+    # print out the result matrix
     print(classification_report(y_test[0], y_pred[0], target_names=class_names_1))
-    print((y_test[1] - y_pred[1]).norm(2).pow(2))
-    print(classification_report(y_test[2], y_pred[2], target_names=class_names_2))
-    print((y_test[3] - y_pred[3]).norm(2).pow(2))
+    print(mean_squared_error(y_test[1](y_test[0] == 1), y_pred[1](y_test[0] == 1)))
+    print(classification_report(y_test[2](y_test[0] == 1), y_pred[2](y_test[0] == 1), target_names=class_names_2))
+    print(mean_squared_error(y_test[3], y_pred[3]))
 
     text = pd.DataFrame({'text':y_review_texts})
     text = text[['text']]
