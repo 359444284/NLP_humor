@@ -1,3 +1,8 @@
+"""
+this is all the code for my individual project
+some of the structure of my code is adapted from Venelin's blog: https://curiousily.com/posts/sentiment-analysis-with-bert-and-hugging-face-using-pytorch-and-python/
+
+"""
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, Dataset
@@ -14,11 +19,15 @@ RANDOM_SEED = 70
 BATCH_SIZE = 8
 MAX_LEN = 150
 EPOCHS = 15
-USE_ALL_LAYER = True
 WEIGHT_1A = 1.0
 WEIGHT_1B = 0.0
 WEIGHT_1C = 0.0
 WEIGHT_2A = 1.0 - (WEIGHT_1A + WEIGHT_1B + WEIGHT_1C)
+
+USE_ALL_LAYER = True
+Weight_By_Uncertainty = False
+MODEL_PATH = 'roberta-large'
+#     MODEL_PATH = 'albert-xxlarge-v2'
 
 
 torch.cuda.current_device()
@@ -33,6 +42,8 @@ def set_seed(seed):
     torch.backends.cudnn.benchmark = False
     torch.cuda.manual_seed(seed)
 
+# Adapted from Venelin's blog
+# this function use different tockenizers to embedding the input sentenses to tokens
 class GPReviewDataset(Dataset):
     def __init__(self, dataframe, with_label, tokenizer, max_len):
         self.reviews=dataframe.text.to_numpy()
@@ -70,7 +81,9 @@ class GPReviewDataset(Dataset):
                  'input_ids': encoding['input_ids'].flatten(),
                  'attention_mask': encoding['attention_mask'].flatten(),
              }
-
+            
+# Adapted from Venelin's blog
+# create a troch data loader
 def create_data_loader(df, with_label, tokenizer, max_len, batch_size):
     ds = GPReviewDataset(
         df,
@@ -85,6 +98,7 @@ def create_data_loader(df, with_label, tokenizer, max_len, batch_size):
         num_workers=4
     )
 
+# all the code about my model
 class MyModel(nn.Module):
     def __init__(self, freeze_bert=False, use_all_layer=True):
         super(MyModel, self).__init__()
@@ -96,34 +110,35 @@ class MyModel(nn.Module):
 
         # share layer
         self.softmax_all_layer = nn.Softmax(-1)
-        self.pooler = nn.Linear(self.model.config.hidden_size, self.model.config.hidden_size)
-        self.pooler_activation = nn.Tanh()
         self.nn_dense = nn.Linear(self.model.config.hidden_size, 1)
+        # use a truncated_normalizer to initialize the α.
         self.truncated_normal_(self.nn_dense.weight)
         self.act = nn.ReLU()
+        self.pooler = nn.Linear(self.model.config.hidden_size, self.model.config.hidden_size)
+        self.pooler_activation = nn.Tanh()
 
         # is_humour
-        self.tower_1 = nn.Sequential(
+        self.subtask_1a = nn.Sequential(
             nn.Dropout(p=0.6),
             nn.Linear(self.model.config.hidden_size, 2),
             nn.Softmax(dim=1)
         )
         
         # humor_rating
-        self.tower_2 = nn.Sequential(
+        self.subtask_1b = nn.Sequential(
             nn.Dropout(p=0.6),
             nn.Linear(self.model.config.hidden_size, 1)
         )
         
         # humor_controversy
-        self.tower_3 = nn.Sequential(
+        self.subtask_1c = nn.Sequential(
             nn.Dropout(p=0.6),
             nn.Linear(self.model.config.hidden_size, 2),
             nn.Softmax(dim=1)
         )
         
         # offense_rating
-        self.tower_4 = nn.Sequential(
+        self.subtask_2a = nn.Sequential(
             nn.Dropout(p=0.6),
             nn.Linear(self.model.config.hidden_size, 1)
         )
@@ -144,31 +159,36 @@ class MyModel(nn.Module):
             input_ids=input_ids,
             attention_mask=attention_mask
         )
+        # calculate α_i
         layer_logits = []
         for layer in outputs.hidden_states[1:]:
             out = self.nn_dense(layer)
             layer_logits.append(self.act(out))
-
+        
+        # sum up layers by weighting
         layer_logits = torch.cat(layer_logits, axis=2)
         layer_dist = self.softmax_all_layer(layer_logits)
         seq_out = torch.cat([torch.unsqueeze(x, axis=2) for x in outputs.hidden_states[1:]], axis=2)
         all_layer_output = torch.matmul(torch.unsqueeze(layer_dist, axis=2), seq_out)
         all_layer_output = torch.squeeze(all_layer_output, axis=2)
+        # take the [CLS] token output
         all_layer_output = self.pooler_activation(self.pooler(all_layer_output[:, 0])) if self.pooler is not None else None
+        
+        
         if not self.use_all_layer:
+            # use [CLS] tokken output for the last layer encoder
             pooled_output = outputs.pooler_output
         else:
             pooled_output = all_layer_output
-
-        output1 = self.tower_1(pooled_output)
-        output2 = self.tower_2(pooled_output).clamp(0, 5)
-        output3 = self.tower_3(pooled_output)
-        output4 = self.tower_4(pooled_output).clamp(0, 5)
+        
+        output1 = self.subtask_1a(pooled_output)
+        output2 = self.subtask_1b(pooled_output).clamp(0, 5)
+        output3 = self.subtask_1c(pooled_output)
+        output4 = self.subtask_2a(pooled_output).clamp(0, 5)
         return output1, output2, output3, output4
-#         return output1
 
 
-
+# Adapted from Venelin's blog: training step
 def train_epoch(
     model,
     mtl,
@@ -190,7 +210,6 @@ def train_epoch(
         attention_mask = d["attention_mask"].to(device)
         targets = d["targets"].to(device)
         output1, output2, output3, output4 = model(
-#         output1 = model(
           input_ids=input_ids,
           attention_mask=attention_mask
         )
@@ -201,35 +220,24 @@ def train_epoch(
         mes1 = (output2 - targets[:,1]).norm(2).pow(2)
         _, preds3 = torch.max(output3, dim=1)
         mes2 = (output4 - targets[:,3]).norm(2).pow(2)
-
-#         loss, log_vars = mtl(output1,
-#                              output2[preds1 == 1],
-#                              output3[preds1 == 1],
-#                              output4,
-#                              [targets[:,0].type(torch.cuda.LongTensor), targets[:,1][preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor), targets[:,3]]
-#                          )
-        loss = 0
-        loss1 = loss_fn_CE(output1, targets[:,0].type(torch.cuda.LongTensor))
-        loss4 = loss_fn_MSE(output4, targets[:,3])
-        loss += WEIGHT_1A*loss1 + WEIGHT_2A*loss4
-        if output2[preds1 == 1].numel():
-
-            loss2 = loss_fn_MSE(output2[preds1 == 1], targets[:,1][preds1 == 1])
-
-            loss3 = loss_fn_CE(output3[preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor))
-            loss += WEIGHT_1B*loss2 + WEIGHT_1C*loss3
+        
+        if Weight_By_Uncertainty:
+                loss = mtl(output1,
+                                     output2[preds1 == 1],
+                                     output3[preds1 == 1],
+                                     output4,
+                                     [targets[:,0].type(torch.cuda.LongTensor), targets[:,1][preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor), targets[:,3]]
+                          )
         else:
-            loss = loss
-        
-        
-        
-        
-#         loss = mtl(output1,
-#                              output2[preds1 == 1],
-#                              output3[preds1 == 1],
-#                              output4,
-#                              [targets[:,0].type(torch.cuda.LongTensor), targets[:,1][preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor), targets[:,3]]
-#                              )
+                loss = 0
+                loss1 = loss_fn_CE(output1, targets[:,0].type(torch.cuda.LongTensor))
+                loss4 = loss_fn_MSE(output4, targets[:,3])
+                loss += WEIGHT_1A*loss1 + WEIGHT_2A*loss4
+                if output2[preds1 == 1].numel():
+                    
+                    loss2 = loss_fn_MSE(output2[preds1 == 1], targets[:,1][preds1 == 1])
+                    loss3 = loss_fn_CE(output3[preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor))
+                    loss += WEIGHT_1B*loss2 + WEIGHT_1C*loss3
 
         correct_predictions1 += torch.sum(preds1 == targets[:,0])
         acc1 = correct_predictions1.double() / n_examples
@@ -244,9 +252,8 @@ def train_epoch(
         scheduler.step()
         optimizer.zero_grad()
     return acc1, mes1, acc2, mes2, np.mean(losses)
-#     return acc1, np.mean(losses)
 
-
+# Adapted from Venelin's blog: eval step
 def eval_model(model, mtl, data_loader, loss_fn_CE, loss_fn_MSE, device, n_examples):
     model = model.eval()
     losses = []
@@ -259,7 +266,6 @@ def eval_model(model, mtl, data_loader, loss_fn_CE, loss_fn_MSE, device, n_examp
             attention_mask = d["attention_mask"].to(device)
             targets = d["targets"].to(device)
             output1, output2, output3, output4 = model(
-#             output1 = model(
               input_ids=input_ids,
               attention_mask=attention_mask
             )
@@ -271,40 +277,33 @@ def eval_model(model, mtl, data_loader, loss_fn_CE, loss_fn_MSE, device, n_examp
             _, preds3 = torch.max(output3, dim=1)
             mes2 = (output4 - targets[:,3]).norm(2).pow(2)
         
-#             loss, log_vars = mtl(output1,
-#                                  output2[preds1 == 1],
-#                                  output3[preds1 == 1],
-#                                  output4,
-#                                  [targets[:,0].type(torch.cuda.LongTensor), targets[:,1][preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor), targets[:,3]]
-#                              )
-            loss = 0
-            loss1 = loss_fn_CE(output1, targets[:,0].type(torch.cuda.LongTensor))
-            loss4 = loss_fn_MSE(output4, targets[:,3])
-            loss += WEIGHT_1A*loss1 + WEIGHT_2A*loss4
-            if output2[preds1 == 1].numel():
-
-                loss2 = loss_fn_MSE(output2[preds1 == 1], targets[:,1][preds1 == 1])
-
-                loss3 = loss_fn_CE(output3[preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor))
-                loss += WEIGHT_1B*loss2 + WEIGHT_1C*loss3
+            if Weight_By_Uncertainty:
+                    loss = mtl(output1,
+                                         output2[preds1 == 1],
+                                         output3[preds1 == 1],
+                                         output4,
+                                         [targets[:,0].type(torch.cuda.LongTensor), targets[:,1][preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor), targets[:,3]]
+                              )
             else:
-                loss = loss
-        
-#             loss =   mtl(output1,
-#                          output2[preds1 == 1],
-#                          output3[preds1 == 1],
-#                          output4,
-#                          [targets[:,0].type(torch.cuda.LongTensor), targets[:,1][preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor), targets[:,3]]
-#                          )
-            correct_predictions1 += torch.sum(preds1 == targets[:,0])
-            acc1 = correct_predictions1.double() / n_examples
-            correct_predictions2 += torch.sum(preds3 == targets[:,2])
-            acc2 = correct_predictions2.double() / n_examples
+                    loss = 0
+                    loss1 = loss_fn_CE(output1, targets[:,0].type(torch.cuda.LongTensor))
+                    loss4 = loss_fn_MSE(output4, targets[:,3])
+                    loss += WEIGHT_1A*loss1 + WEIGHT_2A*loss4
+                    if output2[preds1 == 1].numel():
 
-            losses.append(loss.item())
+                        loss2 = loss_fn_MSE(output2[preds1 == 1], targets[:,1][preds1 == 1])
+                        loss3 = loss_fn_CE(output3[preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor))
+                        loss += WEIGHT_1B*loss2 + WEIGHT_1C*loss3
+
+                correct_predictions1 += torch.sum(preds1 == targets[:,0])
+                acc1 = correct_predictions1.double() / n_examples
+                correct_predictions2 += torch.sum(preds3 == targets[:,2])
+                acc2 = correct_predictions2.double() / n_examples
+
+                losses.append(loss.item())
     return acc1, mes1, acc2, mes2, np.mean(losses)
-#     return acc1, np.mean(losses)
 
+# Adapted from Venelin's blog: predict the labels
 def get_predictions(model, with_label, data_loader):
     model = model.eval()
     review_texts = []
@@ -319,14 +318,13 @@ def get_predictions(model, with_label, data_loader):
          r3 = []
          r4 = []
          real_values = []
-
+            
     with torch.no_grad():
         for d in data_loader:
             texts = d["review_text"]
             input_ids = d["input_ids"].to(device)
             attention_mask = d["attention_mask"].to(device)
             output1, output2, output3, output4 = model(
-#             output1 = model(
                 input_ids=input_ids,
                 attention_mask=attention_mask
             )
@@ -394,54 +392,18 @@ class MultiTaskLossWrapper(nn.Module):
 
         return loss
 
-class ScheduledOptim(object):
-    '''A wrapper class for learning rate scheduling'''
- 
-    def __init__(self, optimizer):
-        self.optimizer = optimizer
-        self.lr = self.optimizer.param_groups[0]['lr']
-        self.current_steps = 0
- 
-    def step(self):
-        "Step by the inner optimizer"
-        self.current_steps += 1
-        self.optimizer.step()
- 
-    def zero_grad(self):
-        "Zero out the gradients by the inner optimizer"
-        self.optimizer.zero_grad()
- 
-    def set_learning_rate(self, lr):
-        self.lr = lr
-        for param_group in self.optimizer.param_groups:
-            param_group['lr'] = lr
- 
-    @property
-    def learning_rate(self):
-        return self.lr
- 
- 
-def find_lr():
-    pass
- 
- 
-def train_model():
-    pass
- 
-
 if __name__ == '__main__':
 
     set_seed(RANDOM_SEED)
-
-    MODEL_PATH = 'roberta-large'
-#     MODEL_PATH = 'albert-xxlarge-v2'
     tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH, output_hidden_states=True, return_dict=True)
 
+    # load data
     df = pd.read_csv("./datas/task1/train/train.csv")
     df = df.fillna(0.0)
     df['list'] = df[df.columns[2:]].values.tolist()
     df = df[['text', 'list']]
-
+    
+    # Separat data to training set(0.9) validation set(0.05) and test set(0.05)
     class_names_1 = ['is_humor', 'not_humor']
     class_names_2 = ['is_CON', 'not_CON']
     df_train, df_test = train_test_split(
@@ -459,9 +421,9 @@ if __name__ == '__main__':
     val_data_loader = create_data_loader(df_val, True, tokenizer, MAX_LEN, BATCH_SIZE)
     test_data_loader = create_data_loader(df_test, True, tokenizer, MAX_LEN, BATCH_SIZE)
     data = next(iter(train_data_loader))
-
+    
+    # initialize model
     model = MyModel(use_all_layer=USE_ALL_LAYER)
-    #model.load_state_dict(torch.load('./best_model_state.bin'))
 
     if torch.cuda.device_count()>1:
       model=nn.DataParallel(model,device_ids=[1,2])
@@ -469,7 +431,8 @@ if __name__ == '__main__':
     model = model.to(device)
     input_ids = data['input_ids'].to(device)
     attention_mask = data['attention_mask'].to(device)
-
+    
+    # initialize optimizer
     optimizer = AdamW(model.parameters(), lr=2e-6, correct_bias=False)
     total_steps = len(train_data_loader) * EPOCHS
 
@@ -479,54 +442,12 @@ if __name__ == '__main__':
         num_training_steps=total_steps
     )
     
+    # initialize loss functions
     loss_fn_CE = nn.CrossEntropyLoss().to(device)
     loss_fn_MSE = nn.MSELoss().to(device)
     mtl = MultiTaskLossWrapper(4,loss_fn_CE).to(device)
-#     basic_optim = AdamW(model.parameters(), lr=1e-6, correct_bias=False)
-#     optimizer1 = ScheduledOptim(basic_optim)
     
-#     lr_mult = (1 / 1e-5) ** (1 / 100)
-#     lr = []
-#     losses = []
-#     best_loss = 1e9
-#     for d in train_data_loader:
-#         texts = d["review_text"]
-#         input_ids = d["input_ids"].to(device)
-#         attention_mask = d["attention_mask"].to(device)
-#         targets = d["targets"].to(device)
-#         output1, output2, output3, output4 = model(
-#                 input_ids=input_ids,
-#                 attention_mask=attention_mask
-#             )
-#         output2 = output2[:,0]
-#         output4 = output4[:,0]
-#         _, preds1 = torch.max(output1, dim=1)
-#         mes1 = (output2 - targets[:,1]).norm(2).pow(2)
-#         _, preds3 = torch.max(output3, dim=1)
-#         mes2 = (output4 - targets[:,3]).norm(2).pow(2)
-        
-#         loss, log_vars = mtl(preds1,
-#                              output2[preds1 == 1],
-#                              preds3[preds1 == 1],
-#                              output4,
-#                              [targets[:,0], targets[:,1][preds1 == 1], targets[:,2][preds1 == 1], targets[:,3]]
-#                          )
-#         # backward
-#         optimizer1.zero_grad()
-#         loss.backward()
-#         optimizer1.step()
-#         lr.append(optimizer1.learning_rate)
-#         losses.append(loss.item())
-#         optimizer1.set_learning_rate(optimizer1.learning_rate * lr_mult)
-#         if loss.item() < best_loss:
-#             best_loss = loss.item()
-#         if loss.item() > 100 * best_loss or optimizer1.learning_rate > 1.:
-#             break
-    
-
-#     print([lr, losses])
-
-
+    # training
     history = defaultdict(list)
     best_accuracy_1 = 0
     best_accuracy_2 = 0
@@ -534,7 +455,6 @@ if __name__ == '__main__':
         print(f'Epoch {epoch + 1}/{EPOCHS}')
         print('-' * 10)
         train_acc_1, train_mse_1, train_acc_2, train_mse_2, train_loss = train_epoch(
-#         train_acc_1, train_loss = train_epoch(
             model,
             mtl,
             train_data_loader,
@@ -545,10 +465,9 @@ if __name__ == '__main__':
             scheduler,
             len(df_train)
         )
-        print(f'Train loss {train_loss} accuracy1 {train_acc_1} accuracy2 {train_acc_2}')
-#         print(f'Train loss {train_loss} accuracy1 {train_acc_1}')
+        print(f'Train loss {train_loss} accuracy_1a {train_acc_1} accuracy_1c {train_acc_2} MSE_1b {train_mse_1} MSE_2a {train_mse_2}')
+
         val_acc_1, val_mse_1, val_acc_2, val_mse_1, val_loss = eval_model(
-#         val_acc_1, val_loss = eval_model(
             model,
             mtl,
             val_data_loader,
@@ -557,8 +476,8 @@ if __name__ == '__main__':
             device,
             len(df_val)
         )
-        print(f'Val   loss {val_loss} accuracy1 {val_acc_1} accuracy2 {val_acc_2}')
-#         print(f'Val   loss {val_loss} accuracy1 {val_acc_1}')
+        print(f'Val   loss {val_loss} accuracy_1a {val_acc_1} accuracy_1c {val_acc_2} MSE_1b {train_mse_1} MSE_2a {train_mse_2}')
+
         print()
         history['train_acc_1'].append(train_acc_1)
         history['train_acc_2'].append(train_acc_2)
@@ -566,7 +485,8 @@ if __name__ == '__main__':
         history['val_acc_1'].append(val_acc_1)
         history['val_acc_2'].append(val_acc_2)
         history['val_loss'].append(val_loss)
-
+        
+        # save the best model
         if val_acc_1 > best_accuracy_1:
             torch.save(model.state_dict(), 'best_model_state.bin')
             best_accuracy_1 = val_acc_1
@@ -576,7 +496,8 @@ if __name__ == '__main__':
                 torch.save(model.state_dict(), 'best_model_state.bin')
                 best_accuracy_1 = val_acc_1
                 best_accuracy_2 = val_acc_2
-
+    
+    # load task dataset
     df = pd.read_csv("./public_test.csv")
     df = df[['text']]
 
@@ -584,7 +505,8 @@ if __name__ == '__main__':
     class_names_2 = ['is_CON', 'not_CON']
 
     final_test_data_loader = create_data_loader(df, False, tokenizer, MAX_LEN, BATCH_SIZE)
-
+    
+    # use the best model we have to predict the result
     model.load_state_dict(torch.load('./best_model_state.bin'))
 
     model = model.to(device)
@@ -594,7 +516,8 @@ if __name__ == '__main__':
           False,
           final_test_data_loader
     )
-
+    
+    # product a CVS file for task result
     result = pd.read_csv("./public_test.csv", header=0)
     label_1 = pd.DataFrame({'is_humor':y_pred[0]})
     label_1 = label_1[['is_humor']]
@@ -605,10 +528,10 @@ if __name__ == '__main__':
     label_4 = pd.DataFrame({'offense_rating':y_pred[3]})
     label_4 = label_4[['offense_rating']]
     result = pd.concat([result,label_1,label_2,label_3,label_4],axis=1)
-#     result = pd.concat([result,label_1],axis=1)
     print(result)
     result.to_csv("task1a.csv")
-
+    
+    # product a CVS file for result of training data
     y_review_texts, y_pred, y_test = get_predictions(
        model,
        True,
@@ -639,8 +562,6 @@ if __name__ == '__main__':
     target_4 = pd.DataFrame({'target_4':y_test[3]})
     target_4 = target_4[['target_4']]
     own_result = pd.concat([text, label_1, target_1, label_2, target_2, label_3, target_3, label_4, target_4],axis=1)
-#     own_result = pd.concat([text, label_1, target_1],axis=1)
-    #      result = pd.concat([result,label_1],axis=1)
     own_result.to_csv("result.csv")
 
 
