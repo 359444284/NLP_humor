@@ -119,27 +119,27 @@ class MyModel(nn.Module):
 
         # is_humour
         self.subtask_1a = nn.Sequential(
-            nn.Dropout(p=0.6),
+            nn.Dropout(p=0.7),
             nn.Linear(self.model.config.hidden_size, 2),
             nn.Softmax(dim=1)
         )
         
         # humor_rating
         self.subtask_1b = nn.Sequential(
-            nn.Dropout(p=0.6),
+            nn.Dropout(p=0.7),
             nn.Linear(self.model.config.hidden_size, 1)
         )
         
         # humor_controversy
         self.subtask_1c = nn.Sequential(
-            nn.Dropout(p=0.6),
+            nn.Dropout(p=0.7),
             nn.Linear(self.model.config.hidden_size, 2),
             nn.Softmax(dim=1)
         )
         
         # offense_rating
         self.subtask_2a = nn.Sequential(
-            nn.Dropout(p=0.6),
+            nn.Dropout(p=0.7),
             nn.Linear(self.model.config.hidden_size, 1)
         )
     
