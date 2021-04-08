@@ -166,8 +166,8 @@ class MyModel(nn.Module):
         output2 = self.tower_2(pooled_output).clamp(0, 5)
         output3 = self.tower_3(pooled_output)
         output4 = self.tower_4(pooled_output).clamp(0, 5)
-        return output1, output2, output3, output4
-#         return output3
+#         return output1, output2, output3, output4
+        return output1
 
 
 
@@ -191,13 +191,13 @@ def train_epoch(
         input_ids = d["input_ids"].to(device)
         attention_mask = d["attention_mask"].to(device)
         targets = d["targets"].to(device)
-        output1, output2, output3, output4 = model(
-#         output1 = model(
+#         output1, output2, output3, output4 = model(
+        output1 = model(
           input_ids=input_ids,
           attention_mask=attention_mask
         )
-        output2 = output2[:,0]
-        output4 = output4[:,0]
+#         output2 = output2[:,0]
+#         output4 = output4[:,0]
 
 #         output1, output2 = model(
 #           input_ids=input_ids,
@@ -205,9 +205,9 @@ def train_epoch(
 #         )
 
         _, preds1 = torch.max(output1, dim=1)
-        mes1 = (output2 - targets[:,1]).norm(2).pow(2)
-        _, preds3 = torch.max(output3, dim=1)
-        mes2 = (output4 - targets[:,3]).norm(2).pow(2)
+#         mes1 = (output2 - targets[:,1]).norm(2).pow(2)
+#         _, preds3 = torch.max(output3, dim=1)
+#         mes2 = (output4 - targets[:,3]).norm(2).pow(2)
         
 #         _, preds1 = torch.max(output1, dim=1)
 #         _, preds3 = torch.max(output2, dim=1)
@@ -220,17 +220,18 @@ def train_epoch(
 #                          )
         loss = 0
         loss1 = loss_fn_CE(output1, targets[:,0].type(torch.cuda.LongTensor))
-        loss4 = loss_fn_MSE(output4, targets[:,3])
-        loss += WEIGHT_1A*loss1 + WEIGHT_2A*loss4
-        if output2[preds1 == 1].numel():
+        loss = loss1
+#         loss4 = loss_fn_MSE(output4, targets[:,3])
+#         loss += WEIGHT_1A*loss1 + WEIGHT_2A*loss4
+#         if output2[preds1 == 1].numel():
 
-            loss2 = loss_fn_MSE(output2[preds1 == 1], targets[:,1][preds1 == 1])
+#             loss2 = loss_fn_MSE(output2[preds1 == 1], targets[:,1][preds1 == 1])
 
-            loss3 = loss_fn_CE(output3[preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor))
-            loss += WEIGHT_1B*loss2 + WEIGHT_1C*loss3
-            loss = loss
-        else:
-            loss = loss
+#             loss3 = loss_fn_CE(output3[preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor))
+#             loss += WEIGHT_1B*loss2 + WEIGHT_1C*loss3
+#             loss = loss
+#         else:
+#             loss = loss
         
         
         
@@ -244,8 +245,8 @@ def train_epoch(
 
         correct_predictions1 += torch.sum(preds1 == targets[:,0])
         acc1 = correct_predictions1.double() / n_examples
-        correct_predictions2 += torch.sum(preds3 == targets[:,2])
-        acc2 = correct_predictions2.double() / n_examples
+#         correct_predictions2 += torch.sum(preds3 == targets[:,2])
+#         acc2 = correct_predictions2.double() / n_examples
 
 
         losses.append(loss.item())
@@ -254,8 +255,8 @@ def train_epoch(
         optimizer.step()
         scheduler.step()
         optimizer.zero_grad()
-    return acc1, mes1, acc2, mes2, np.mean(losses)
-#     return acc1, np.mean(losses)
+#     return acc1, mes1, acc2, mes2, np.mean(losses)
+    return acc1, np.mean(losses)
 
 
 def eval_model(model, mtl, data_loader, loss_fn_CE, loss_fn_MSE, device, n_examples):
@@ -269,13 +270,13 @@ def eval_model(model, mtl, data_loader, loss_fn_CE, loss_fn_MSE, device, n_examp
             input_ids = d["input_ids"].to(device)
             attention_mask = d["attention_mask"].to(device)
             targets = d["targets"].to(device)
-            output1, output2, output3, output4 = model(
-#             output1 = model(
+#             output1, output2, output3, output4 = model(
+            output1 = model(
               input_ids=input_ids,
               attention_mask=attention_mask
             )
-            output2 = output2[:,0]
-            output4 = output4[:,0]
+#             output2 = output2[:,0]
+#             output4 = output4[:,0]
 
 #             output1, output2 = model(
 #               input_ids=input_ids,
@@ -283,9 +284,9 @@ def eval_model(model, mtl, data_loader, loss_fn_CE, loss_fn_MSE, device, n_examp
 #             )
 
             _, preds1 = torch.max(output1, dim=1)
-            mes1 = (output2 - targets[:,1]).norm(2).pow(2)
-            _, preds3 = torch.max(output3, dim=1)
-            mes2 = (output4 - targets[:,3]).norm(2).pow(2)
+#             mes1 = (output2 - targets[:,1]).norm(2).pow(2)
+#             _, preds3 = torch.max(output3, dim=1)
+#             mes2 = (output4 - targets[:,3]).norm(2).pow(2)
         
 #             _, preds1 = torch.max(output1, dim=1)
 #             _, preds3 = torch.max(output2, dim=1)
@@ -298,17 +299,18 @@ def eval_model(model, mtl, data_loader, loss_fn_CE, loss_fn_MSE, device, n_examp
 #                              )
             loss = 0
             loss1 = loss_fn_CE(output1, targets[:,0].type(torch.cuda.LongTensor))
-            loss4 = loss_fn_MSE(output4, targets[:,3])
-            loss += WEIGHT_1A*loss1 + WEIGHT_2A*loss4
-            if output2[preds1 == 1].numel():
+            loss = loss1
+#             loss4 = loss_fn_MSE(output4, targets[:,3])
+#             loss += WEIGHT_1A*loss1 + WEIGHT_2A*loss4
+#             if output2[preds1 == 1].numel():
 
-                loss2 = loss_fn_MSE(output2[preds1 == 1], targets[:,1][preds1 == 1])
+#                 loss2 = loss_fn_MSE(output2[preds1 == 1], targets[:,1][preds1 == 1])
 
-                loss3 = loss_fn_CE(output3[preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor))
-                loss += WEIGHT_1B*loss2 + WEIGHT_1C*loss3
-                loss = loss
-            else:
-                loss = loss
+#                 loss3 = loss_fn_CE(output3[preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor))
+#                 loss += WEIGHT_1B*loss2 + WEIGHT_1C*loss3
+#                 loss = loss
+#             else:
+#                 loss = loss
         
 #             loss =   mtl(output1,
 #                          output2[preds1 == 1],
@@ -318,12 +320,12 @@ def eval_model(model, mtl, data_loader, loss_fn_CE, loss_fn_MSE, device, n_examp
 #                          )
             correct_predictions1 += torch.sum(preds1 == targets[:,0])
             acc1 = correct_predictions1.double() / n_examples
-            correct_predictions2 += torch.sum(preds3 == targets[:,2])
-            acc2 = correct_predictions2.double() / n_examples
+#             correct_predictions2 += torch.sum(preds3 == targets[:,2])
+#             acc2 = correct_predictions2.double() / n_examples
 
             losses.append(loss.item())
-    return acc1, mes1, acc2, mes2, np.mean(losses)
-#     return acc1, np.mean(losses)
+#     return acc1, mes1, acc2, mes2, np.mean(losses)
+    return acc1, np.mean(losses)
 
 
 class MultiTaskLossWrapper(nn.Module):
@@ -508,8 +510,8 @@ if __name__ == '__main__':
         )
         print(f'Train loss {train_loss} accuracy1 {train_acc_1} accuracy2 {train_acc_2}')
 #         print(f'Train loss {train_loss} accuracy1 {train_acc_1}')
-        val_acc_1, val_mse_1, val_acc_2, val_mse_1, val_loss = eval_model(
-#         val_acc_1, val_loss = eval_model(
+#         val_acc_1, val_mse_1, val_acc_2, val_mse_1, val_loss = eval_model(
+        val_acc_1, val_loss = eval_model(
             model,
             mtl,
             val_data_loader,
@@ -518,25 +520,25 @@ if __name__ == '__main__':
             device,
             len(df_val)
         )
-        print(f'Val   loss {val_loss} accuracy1 {val_acc_1} accuracy2 {val_acc_2}')
-#         print(f'Val   loss {val_loss} accuracy1 {val_acc_1}')
+#         print(f'Val   loss {val_loss} accuracy1 {val_acc_1} accuracy2 {val_acc_2}')
+        print(f'Val   loss {val_loss} accuracy1 {val_acc_1}')
         print()
         history['train_acc_1'].append(train_acc_1)
-        history['train_acc_2'].append(train_acc_2)
+#         history['train_acc_2'].append(train_acc_2)
         history['train_loss'].append(train_loss)
         history['val_acc_1'].append(val_acc_1)
-        history['val_acc_2'].append(val_acc_2)
+#         history['val_acc_2'].append(val_acc_2)
         history['val_loss'].append(val_loss)
 
         if val_acc_1 > best_accuracy_1:
             torch.save(model.state_dict(), 'best_model_state.bin')
             best_accuracy_1 = val_acc_1
-            best_accuracy_2 = val_acc_2
-        elif val_acc_1 == best_accuracy_1:
-            if val_acc_2 > best_accuracy_2:
-                torch.save(model.state_dict(), 'best_model_state.bin')
-                best_accuracy_1 = val_acc_1
-                best_accuracy_2 = val_acc_2
+#             best_accuracy_2 = val_acc_2
+#         elif val_acc_1 == best_accuracy_1:
+#             if val_acc_2 > best_accuracy_2:
+#                 torch.save(model.state_dict(), 'best_model_state.bin')
+#                 best_accuracy_1 = val_acc_1
+#                 best_accuracy_2 = val_acc_2
 
 
 
