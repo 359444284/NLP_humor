@@ -364,7 +364,7 @@ if __name__ == '__main__':
 
      test_data_loader = create_data_loader(df, False, tokenizer, MAX_LEN, BATCH_SIZE)
 
-     model = MyModel(use_all_layer=False)
+     model = MyModel(use_all_layer=True)
      if torch.cuda.device_count()>1:
           model=nn.DataParallel(model,device_ids=[1,2])
 
