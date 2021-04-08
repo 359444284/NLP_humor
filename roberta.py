@@ -1,26 +1,24 @@
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, Dataset
-from transformers import AlbertTokenizer, AlbertModel, AlbertConfig, AlbertForPreTraining, AdamW, \
-    get_linear_schedule_with_warmup, AlbertForSequenceClassification, AutoModel, AutoTokenizer, \
-    RobertaConfig, RobertaModel, RobertaTokenizer
+from transformers import AdamW, get_linear_schedule_with_warmup, AutoModel, AutoTokenizer
 import numpy as np
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import confusion_matrix, classification_report, roc_curve, auc
+from sklearn.metrics import confusion_matrix, classification_report
 from collections import defaultdict
 import pandas as pd
 import random
 import matplotlib.pyplot as plt
-# 70 80 90
+
 RANDOM_SEED = 70
 BATCH_SIZE = 8
 MAX_LEN = 150
 EPOCHS = 15
-USE_ALL_LAYER = False
+USE_ALL_LAYER = True
 WEIGHT_1A = 1.0
 WEIGHT_1B = 0.0
-WEIGHT_1C = 0
-WEIGHT_2A = 1 - (WEIGHT_1A + WEIGHT_1B + WEIGHT_1C)
+WEIGHT_1C = 0.0
+WEIGHT_2A = 1.0 - (WEIGHT_1A + WEIGHT_1B + WEIGHT_1C)
 
 
 torch.cuda.current_device()
@@ -106,27 +104,27 @@ class MyModel(nn.Module):
 
         # is_humour
         self.tower_1 = nn.Sequential(
-            nn.Dropout(p=0.3),
+            nn.Dropout(p=0.8),
             nn.Linear(self.model.config.hidden_size, 2),
             nn.Softmax(dim=1)
         )
         
         # humor_rating
         self.tower_2 = nn.Sequential(
-            nn.Dropout(p=0.3),
+            nn.Dropout(p=0.8),
             nn.Linear(self.model.config.hidden_size, 1)
         )
         
         # humor_controversy
         self.tower_3 = nn.Sequential(
-            nn.Dropout(p=0.3),
+            nn.Dropout(p=0.8),
             nn.Linear(self.model.config.hidden_size, 2),
             nn.Softmax(dim=1)
         )
         
         # offense_rating
         self.tower_4 = nn.Sequential(
-            nn.Dropout(p=0.3),
+            nn.Dropout(p=0.8),
             nn.Linear(self.model.config.hidden_size, 1)
         )
       
