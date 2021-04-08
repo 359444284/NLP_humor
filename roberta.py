@@ -508,8 +508,8 @@ if __name__ == '__main__':
             scheduler,
             len(df_train)
         )
-        print(f'Train loss {train_loss} accuracy1 {train_acc_1} accuracy2 {train_acc_2}')
-#         print(f'Train loss {train_loss} accuracy1 {train_acc_1}')
+#         print(f'Train loss {train_loss} accuracy1 {train_acc_1} accuracy2 {train_acc_2}')
+        print(f'Train loss {train_loss} accuracy1 {train_acc_1}')
 #         val_acc_1, val_mse_1, val_acc_2, val_mse_1, val_loss = eval_model(
         val_acc_1, val_loss = eval_model(
             model,
