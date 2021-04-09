@@ -571,7 +571,7 @@ if __name__ == '__main__':
     label_4 = label_4[['offense_rating']]
     result = pd.concat([result,label_1,label_2,label_3,label_4],axis=1)
     print(result)
-    result.to_csv("task1a.csv")
+    result.to_csv("task_result.csv")
     
     # product a CVS file for result of training data
     y_review_texts, y_pred, y_test = get_predictions(
