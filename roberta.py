@@ -315,12 +315,11 @@ def eval_model(model, mtl, data_loader, loss_fn_CE, loss_fn_MSE, device, n_examp
                             loss3 = loss_fn_CE(output3[preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor))
                             loss += WEIGHT_1B*loss2 + WEIGHT_1C*loss3
 
-        correct_predictions1 += torch.sum(preds1 == targets[:,0])
-        acc1 = correct_predictions1.double() / n_examples
-        correct_predictions2 += torch.sum(preds3 == targets[:,2])
-        acc2 = correct_predictions2.double() / n_examples
-
-        losses.append(loss.item())
+                correct_predictions1 += torch.sum(preds1 == targets[:,0])
+                acc1 = correct_predictions1.double() / n_examples
+                correct_predictions2 += torch.sum(preds3 == targets[:,2])
+                acc2 = correct_predictions2.double() / n_examples
+                losses.append(loss.item())
     return acc1, mes1, acc2, mes2, np.mean(losses)
 
 # Adapted from Venelin's blog: predict the labels
