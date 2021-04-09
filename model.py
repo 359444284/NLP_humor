@@ -28,7 +28,7 @@ parser.add_argument('--lr', type=float, default=2e-6, metavar='LR',
 parser.add_argument('--seed', type=int, default=70, metavar='S',
                     help='random seed (default: 70)')
 parser.add_argument('--cuda', type=int, nargs='+', default=[1, 2], metavar='C',
-                    help='which GPU use to train (default: 0, 1, 2)')
+                    help='which GPU use to train (default: 1, 2)')
 parser.add_argument('--uncertainty', type=ast.literal_eval, default=False,
                     help='weighting with uncertainty (defalut: True)')
 parser.add_argument('--all_layer', type=ast.literal_eval, default=True,
