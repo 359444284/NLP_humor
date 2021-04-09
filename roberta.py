@@ -18,7 +18,7 @@ import random
 import matplotlib.pyplot as plt
 
 parser = argparse.ArgumentParser(description='Model HyperParameter')
-parser.add_argument('--batch-size', type=int, default=8, metavar='N',
+parser.add_argument('--batch_size', type=int, default=8, metavar='N',
                     help='input batch size for training (default: 8)')
 parser.add_argument('--epochs', type=int, default=15, metavar='E',
                     help='number of epochs to train (default: 15)')
@@ -28,12 +28,23 @@ parser.add_argument('--seed', type=int, default=70, metavar='S',
                     help='random seed (default: 70)')
 parser.add_argument('--cuda', type=int, nargs='+', default=[0,1,2], metavar='C',
                     help='which GPU use to train (default: 0, 1, 2)')
-parser.add_argument("--uncertainty", action="store_true", help="weighting with uncertainty (defalut: False)")
-parser.add_argument("--all_layer", action="store_true", help="use all layer trick (defalut: False)")
+parser.add_argument("--uncertainty", action="store_true", 
+                    help="weighting with uncertainty (defalut: False)")
+parser.add_argument("--all_layer", action="store_true", 
+                    help="use all layer trick (defalut: False)")
 parser.add_argument("--weights", type=int, nargs='+', default=[1, 0, 0], metavar='W',
                     help='the loss weight for subtask 1a, 1b, 1c(default: 1, 0, 0)')
-
-
+parser.add_argument('--model', type=str, default='roberta-large',
+                    help='the name of pre-trained model using in experimrnt (default: roberta-large)')
+print(args.batch_size)
+print(args.epochs)
+print(args.lr)
+print(args.seed)
+print(args.cuda)
+print(args.uncertainty)
+print(args.all_layer)
+print(args.weights)
+print(args.model)
 
 RANDOM_SEED = 70
 BATCH_SIZE = 8
@@ -521,71 +532,71 @@ if __name__ == '__main__':
                 best_accuracy_2 = val_acc_2
     
     # load task dataset
-    df = pd.read_csv("./public_test.csv")
-    df = df[['text']]
+#     df = pd.read_csv("./public_test.csv")
+#     df = df[['text']]
 
-    class_names_1 = ['is_humor', 'not_humor']
-    class_names_2 = ['is_CON', 'not_CON']
+#     class_names_1 = ['is_humor', 'not_humor']
+#     class_names_2 = ['is_CON', 'not_CON']
 
-    final_test_data_loader = create_data_loader(df, False, tokenizer, MAX_LEN, BATCH_SIZE)
+#     final_test_data_loader = create_data_loader(df, False, tokenizer, MAX_LEN, BATCH_SIZE)
     
-    # use the best model we have to predict the result
-    model.load_state_dict(torch.load('./best_model_state.bin'))
+#     # use the best model we have to predict the result
+#     model.load_state_dict(torch.load('./best_model_state.bin'))
 
-    model = model.to(device)
+#     model = model.to(device)
 
-    y_review_texts, y_pred= get_predictions(
-          model,
-          False,
-          final_test_data_loader
-    )
+#     y_review_texts, y_pred= get_predictions(
+#           model,
+#           False,
+#           final_test_data_loader
+#     )
     
-    # product a CVS file for task result
-    result = pd.read_csv("./public_test.csv", header=0)
-    label_1 = pd.DataFrame({'is_humor':y_pred[0]})
-    label_1 = label_1[['is_humor']]
-    label_2 = pd.DataFrame({'humor_rating':y_pred[1]})
-    label_2 = label_2[['humor_rating']]
-    label_3 = pd.DataFrame({'humor_controversy':y_pred[2]})
-    label_3 = label_3[['humor_controversy']]
-    label_4 = pd.DataFrame({'offense_rating':y_pred[3]})
-    label_4 = label_4[['offense_rating']]
-    result = pd.concat([result,label_1,label_2,label_3,label_4],axis=1)
-    print(result)
-    result.to_csv("task1a.csv")
+#     # product a CVS file for task result
+#     result = pd.read_csv("./public_test.csv", header=0)
+#     label_1 = pd.DataFrame({'is_humor':y_pred[0]})
+#     label_1 = label_1[['is_humor']]
+#     label_2 = pd.DataFrame({'humor_rating':y_pred[1]})
+#     label_2 = label_2[['humor_rating']]
+#     label_3 = pd.DataFrame({'humor_controversy':y_pred[2]})
+#     label_3 = label_3[['humor_controversy']]
+#     label_4 = pd.DataFrame({'offense_rating':y_pred[3]})
+#     label_4 = label_4[['offense_rating']]
+#     result = pd.concat([result,label_1,label_2,label_3,label_4],axis=1)
+#     print(result)
+#     result.to_csv("task1a.csv")
     
-    # product a CVS file for result of training data
-    y_review_texts, y_pred, y_test = get_predictions(
-       model,
-       True,
-       test_data_loader
-    )
-    # print out the result matrix
-    print(classification_report(y_test[0], y_pred[0], target_names=class_names_1))
-    print(mean_squared_error(y_test[1][y_test[0] == 1], y_pred[1][y_test[0] == 1]))
-    print(classification_report(y_test[2][y_test[0] == 1], y_pred[2][y_test[0] == 1], target_names=class_names_2))
-    print(mean_squared_error(y_test[3], y_pred[3]))
+#     # product a CVS file for result of training data
+#     y_review_texts, y_pred, y_test = get_predictions(
+#        model,
+#        True,
+#        test_data_loader
+#     )
+#     # print out the result matrix
+#     print(classification_report(y_test[0], y_pred[0], target_names=class_names_1))
+#     print(mean_squared_error(y_test[1][y_test[0] == 1], y_pred[1][y_test[0] == 1]))
+#     print(classification_report(y_test[2][y_test[0] == 1], y_pred[2][y_test[0] == 1], target_names=class_names_2))
+#     print(mean_squared_error(y_test[3], y_pred[3]))
 
-    text = pd.DataFrame({'text':y_review_texts})
-    text = text[['text']]
-    label_1 = pd.DataFrame({'is_humor':y_pred[0]})
-    label_1 = label_1[['is_humor']]
-    label_2 = pd.DataFrame({'humor_rating':y_pred[1]})
-    label_2 = label_2[['humor_rating']]
-    label_3 = pd.DataFrame({'humor_controversy':y_pred[2]})
-    label_3 = label_3[['humor_controversy']]
-    label_4 = pd.DataFrame({'offense_rating':y_pred[3]})
-    label_4 = label_4[['offense_rating']]
-    target_1 = pd.DataFrame({'target_1':y_test[0]})
-    target_1 = target_1[['target_1']]
-    target_2 = pd.DataFrame({'target_2':y_test[1]})
-    target_2 = target_2[['target_2']]
-    target_3 = pd.DataFrame({'target_3':y_test[2]})
-    target_3 = target_3[['target_3']]
-    target_4 = pd.DataFrame({'target_4':y_test[3]})
-    target_4 = target_4[['target_4']]
-    own_result = pd.concat([text, label_1, target_1, label_2, target_2, label_3, target_3, label_4, target_4],axis=1)
-    own_result.to_csv("result.csv")
+#     text = pd.DataFrame({'text':y_review_texts})
+#     text = text[['text']]
+#     label_1 = pd.DataFrame({'is_humor':y_pred[0]})
+#     label_1 = label_1[['is_humor']]
+#     label_2 = pd.DataFrame({'humor_rating':y_pred[1]})
+#     label_2 = label_2[['humor_rating']]
+#     label_3 = pd.DataFrame({'humor_controversy':y_pred[2]})
+#     label_3 = label_3[['humor_controversy']]
+#     label_4 = pd.DataFrame({'offense_rating':y_pred[3]})
+#     label_4 = label_4[['offense_rating']]
+#     target_1 = pd.DataFrame({'target_1':y_test[0]})
+#     target_1 = target_1[['target_1']]
+#     target_2 = pd.DataFrame({'target_2':y_test[1]})
+#     target_2 = target_2[['target_2']]
+#     target_3 = pd.DataFrame({'target_3':y_test[2]})
+#     target_3 = target_3[['target_3']]
+#     target_4 = pd.DataFrame({'target_4':y_test[3]})
+#     target_4 = target_4[['target_4']]
+#     own_result = pd.concat([text, label_1, target_1, label_2, target_2, label_3, target_3, label_4, target_4],axis=1)
+#     own_result.to_csv("result.csv")
 
 
 
