@@ -40,7 +40,7 @@ Other Model:
         python model.py --uncertainty False --all_layer False --weights 1 0 0 --dropout 0.6 0 0 0 
 8. RoBERTa + MTL (loss weighting: 0.4 0 0 0.6)
 
-        python model.py --uncertainty False
+        python model.py --all_layer False
 
 ## Hyper Parameters And Defluat Value
 You can add --+[Parameters] + value to set up you own Hyper Parameters.
@@ -49,7 +49,7 @@ You can add --+[Parameters] + value to set up you own Hyper Parameters.
 - lr 2e-06
 - seed 70
 - cuda [0, 1, 2]
-- uncertainty True
+- uncertainty False
 - all_layer True
 - weights [0.4, 0, 0]
 - model roberta-large
