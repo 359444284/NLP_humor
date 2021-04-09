@@ -522,7 +522,7 @@ if __name__ == '__main__':
             device,
             len(df_val)
         )
-        print(val_acc_1)
+
         print(
             f'Val   loss {val_loss} accuracy_1a {val_acc_1} accuracy_1c {val_acc_2} MSE_1b {val_mse_1} MSE_2a {val_mse_2}')
 
