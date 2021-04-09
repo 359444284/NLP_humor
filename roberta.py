@@ -224,10 +224,10 @@ def train_epoch(
         
         if Weight_By_Uncertainty:
                 loss = mtl(output1,
-                                     output2[preds1 == 1],
-                                     output3[preds1 == 1],
-                                     output4,
-                                     [targets[:,0].type(torch.cuda.LongTensor), targets[:,1][preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor), targets[:,3]]
+                           output2[preds1 == 1],
+                           output3[preds1 == 1],
+                           output4,
+                           [targets[:,0].type(torch.cuda.LongTensor), targets[:,1][preds1 == 1], targets[:,2][preds1 == 1].type(torch.cuda.LongTensor), targets[:,3]]
                           )
         else:
                 loss = 0
@@ -468,7 +468,7 @@ if __name__ == '__main__':
         )
         print(f'Train loss {train_loss} accuracy_1a {train_acc_1} accuracy_1c {train_acc_2} MSE_1b {train_mse_1} MSE_2a {train_mse_2}')
 
-        val_acc_1, val_mse_1, val_acc_2, val_mse_1, val_loss = eval_model(
+        val_acc_1, val_mse_1, val_acc_2, val_mse_2, val_loss = eval_model(
             model,
             mtl,
             val_data_loader,
@@ -477,7 +477,7 @@ if __name__ == '__main__':
             device,
             len(df_val)
         )
-        print(f'Val   loss {val_loss} accuracy_1a {val_acc_1} accuracy_1c {val_acc_2} MSE_1b {train_mse_1} MSE_2a {train_mse_2}')
+        print(f'Val   loss {val_loss} accuracy_1a {val_acc_1} accuracy_1c {val_acc_2} MSE_1b {val_mse_1} MSE_2a {val_mse_2}')
 
         print()
         history['train_acc_1'].append(train_acc_1)
