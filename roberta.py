@@ -17,26 +17,29 @@ import pandas as pd
 import random
 import matplotlib.pyplot as plt
 
-# parser = argparse.ArgumentParser(description='Model HyperParameter')
-# parser.add_argument('--batch-size', type=int, default=8, metavar='N',
-#                     help='input batch size for training (default: 8)')
-# parser.add_argument('--epochs', type=int, default=15, metavar='N',
-#                     help='number of epochs to train (default: 15)')
-# parser.add_argument('--lr', type=float, default=2e-6, metavar='LR',
-#                     help='learning rate (default: 0.01)')
-# parser.add_argument('--seed', type=int, default=70, metavar='S',
-#                     help='random seed (default: 70)')
-# parser.add_argument('--cuda', type=int, nargs='+', default=[1,2], metavar='C',
-#                     help='which GPU use to train (default: 0, 1)')
-# parser.add_argument('--weight-srategy', type=int, nargs='+', default=[1,2], metavar='C',
-#                     help='which GPU use to train (default: 0, 1)')
+parser = argparse.ArgumentParser(description='Model HyperParameter')
+parser.add_argument('--batch-size', type=int, default=8, metavar='N',
+                    help='input batch size for training (default: 8)')
+parser.add_argument('--epochs', type=int, default=15, metavar='E',
+                    help='number of epochs to train (default: 15)')
+parser.add_argument('--lr', type=float, default=2e-6, metavar='LR',
+                    help='learning rate (default: 0.01)')
+parser.add_argument('--seed', type=int, default=70, metavar='S',
+                    help='random seed (default: 70)')
+parser.add_argument('--cuda', type=int, nargs='+', default=[0,1,2], metavar='C',
+                    help='which GPU use to train (default: 0, 1, 2)')
+parser.add_argument("--uncertainty", action="store_true", help="weighting with uncertainty (defalut: False)")
+parser.add_argument("--all_layer", action="store_true", help="use all layer trick (defalut: False)")
+parser.add_argument("--weights", type=int, nargs='+', default=[1, 0, 0], metavar='W',
+                    help='the loss weight for subtask 1a, 1b, 1c(default: 1, 0, 0)')
+
 
 
 RANDOM_SEED = 70
 BATCH_SIZE = 8
 LEARNING_RATE = 2e-6
 MAX_LEN = 150
-EPOCHS = 15
+EPOCHS = 0
 WEIGHT_1A = 1.0
 WEIGHT_1B = 0.0
 WEIGHT_1C = 0.0
@@ -559,10 +562,10 @@ if __name__ == '__main__':
     )
     # print out the result matrix
     print(classification_report(y_test[0], y_pred[0], target_names=class_names_1))
-    print(mean_squared_error(y_test[1](y_test[0] == 1), y_pred[1](y_test[0] == 1)))
-    print(classification_report(y_test[2](y_test[0] == 1), y_pred[2](y_test[0] == 1), target_names=class_names_2))
+    print(mean_squared_error(y_test[1][y_test[0] == 1], y_pred[1][y_test[0] == 1]))
+    print(classification_report(y_test[2][y_test[0] == 1], y_pred[2][y_test[0] == 1], target_names=class_names_2))
     print(mean_squared_error(y_test[3], y_pred[3]))
-
+[y_test[0] == 1]
     text = pd.DataFrame({'text':y_review_texts})
     text = text[['text']]
     label_1 = pd.DataFrame({'is_humor':y_pred[0]})
