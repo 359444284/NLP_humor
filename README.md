@@ -55,8 +55,11 @@ You can add --+[Parameters] + value to set up you own Hyper Parameters.
 - model roberta-large
 - dropout [0.3, 0.3, 0.3, 0.3]
 
-
-
+## Result
+After you runned the code showing above. it will output three files:
+- result.cvs (the result fro training set)
+- task_result (the result from the task evalutaion step)
+- best_model_state.bin (the best model within this training)
 
 ## References
 
