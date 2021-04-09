@@ -565,7 +565,7 @@ if __name__ == '__main__':
     print(mean_squared_error(y_test[1][y_test[0] == 1], y_pred[1][y_test[0] == 1]))
     print(classification_report(y_test[2][y_test[0] == 1], y_pred[2][y_test[0] == 1], target_names=class_names_2))
     print(mean_squared_error(y_test[3], y_pred[3]))
-[y_test[0] == 1]
+
     text = pd.DataFrame({'text':y_review_texts})
     text = text[['text']]
     label_1 = pd.DataFrame({'is_humor':y_pred[0]})
