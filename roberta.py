@@ -31,7 +31,7 @@ parser.add_argument('--cuda', type=int, nargs='+', default=[0,1,2], metavar='C',
                     help='which GPU use to train (default: 0, 1, 2)')
 parser.add_argument('--uncertainty', type=ast.literal_eval, dest='flag',
                     help='weighting with uncertainty (defalut: True)')
-parser.add_argument('--uncertainty', type=ast.literal_eval, dest='flag',
+parser.add_argument('--all_layer', type=ast.literal_eval, dest='flag',
                     help="use all layer trick (defalut: True)")
 parser.add_argument("--weights", type=float, nargs='+', default=[0.4, 0, 0], metavar='W',
                     help='the loss weight for subtask 1a, 1b, 1c(default: 0.4, 0, 0)')
