@@ -29,16 +29,16 @@ Other Model:
 
         python model.py --uncertainty False --all_layer False --weights 1 0 0 --dropout 0.8 0.8 0.8 0.8 --model albert-xxlarge-v2
 
-2. Albert + MTL
+2. Albert + MTL (loss weighting: 0.85 0.075 0 0.075)
 
         python model.py --uncertainty False --all_layer False --weights 0.85 0.075 0 --dropout 0.8 0.8 0.8 0.8 --model albert-xxlarge-v2
-4. Albert + MTL + All Layer
+4. Albert + MTL + All Layer (loss weighting: 0.85 0.075 0 0.075)
 
         python model.py --uncertainty False --weights 0.85 0.075 0 --dropout 0.8 0.8 0.8 0.8 --model albert-xxlarge-v2
 6. RoBERTa
 
         python model.py --uncertainty False --all_layer False --weights 1 0 0 --dropout 0.6 0 0 0 
-8. RoBERTa + MTL
+8. RoBERTa + MTL (loss weighting: 0.4 0 0 0.6)
 
         python model.py --uncertainty False
 
