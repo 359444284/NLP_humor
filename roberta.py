@@ -36,15 +36,15 @@ parser.add_argument("--weights", type=int, nargs='+', default=[1, 0, 0], metavar
                     help='the loss weight for subtask 1a, 1b, 1c(default: 1, 0, 0)')
 parser.add_argument('--model', type=str, default='roberta-large',
                     help='the name of pre-trained model using in experimrnt (default: roberta-large)')
-print(args.batch_size)
-print(args.epochs)
-print(args.lr)
-print(args.seed)
-print(args.cuda)
-print(args.uncertainty)
-print(args.all_layer)
-print(args.weights)
-print(args.model)
+print(parser.batch_size)
+print(parser.epochs)
+print(parser.lr)
+print(parser.seed)
+print(parser.cuda)
+print(parser.uncertainty)
+print(parser.all_layer)
+print(parser.weights)
+print(parser.model)
 
 RANDOM_SEED = 70
 BATCH_SIZE = 8
