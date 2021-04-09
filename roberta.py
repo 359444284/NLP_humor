@@ -23,49 +23,56 @@ parser.add_argument('--batch_size', type=int, default=8, metavar='N',
 parser.add_argument('--epochs', type=int, default=15, metavar='E',
                     help='number of epochs to train (default: 15)')
 parser.add_argument('--lr', type=float, default=2e-6, metavar='LR',
-                    help='learning rate (default: 0.01)')
+                    help='learning rate (default: 2e-6)')
 parser.add_argument('--seed', type=int, default=70, metavar='S',
                     help='random seed (default: 70)')
 parser.add_argument('--cuda', type=int, nargs='+', default=[0,1,2], metavar='C',
                     help='which GPU use to train (default: 0, 1, 2)')
-parser.add_argument("--uncertainty", action="store_true", 
-                    help="weighting with uncertainty (defalut: False)")
-parser.add_argument("--all_layer", action="store_true", 
-                    help="use all layer trick (defalut: False)")
-parser.add_argument("--weights", type=float, nargs='+', default=[1, 0, 0], metavar='W',
-                    help='the loss weight for subtask 1a, 1b, 1c(default: 1, 0, 0)')
+parser.add_argument('--uncertainty', type=ast.literal_eval, dest='flag',
+                    help='weighting with uncertainty (defalut: True)')
+parser.add_argument('--uncertainty', type=ast.literal_eval, dest='flag',
+                    help="use all layer trick (defalut: True)")
+parser.add_argument("--weights", type=float, nargs='+', default=[0.4, 0, 0], metavar='W',
+                    help='the loss weight for subtask 1a, 1b, 1c(default: 0.4, 0, 0)')
+parser.add_argument("--dropout", type=float, nargs='+', default=[0.3, 0.3, 0.3, 0.3], metavar='W',
+                    help='the dropout for subtask 1a, 1b, 1c(default: 0.3, 0.3, 0.3, 0.3)')
 parser.add_argument('--model', type=str, default='roberta-large',
-                    help='the name of pre-trained model using in experimrnt (default: roberta-large)')
+                    help='the name of pre-trained model using in experimrnt like albert-xxlarge-v2 (default: roberta-large)')
 args = parser.parse_args()
-print(args.batch_size)
-print(args.epochs)
-print(args.lr)
-print(args.seed)
-print(args.cuda)
-print(args.uncertainty)
-print(args.all_layer)
-print(args.weights)
-print(args.model)
 
-RANDOM_SEED = 70
-BATCH_SIZE = 8
-LEARNING_RATE = 2e-6
+RANDOM_SEED = args.seed
+BATCH_SIZE = args.batch_size
+LEARNING_RATE = args.lr
 MAX_LEN = 150
-EPOCHS = 0
-WEIGHT_1A = 1.0
-WEIGHT_1B = 0.0
-WEIGHT_1C = 0.0
+EPOCHS = args.epochs
+WEIGHT_1A = args.weights[0]
+WEIGHT_1B = args.weights[1]
+WEIGHT_1C = args.weights[2]
 WEIGHT_2A = 1.0 - (WEIGHT_1A + WEIGHT_1B + WEIGHT_1C)
+DROP_1A = args.dropout[0]
+DROP_1B = args.dropout[0]
+DROP_1C = args.dropout[0]
+DROP_2A = args.dropout[0]
 
-USE_ALL_LAYER = True
-Weight_By_Uncertainty = False
-MODEL_PATH = 'roberta-large'
-#     MODEL_PATH = 'albert-xxlarge-v2'
+USE_ALL_LAYER = args.all_layer
+Weight_By_Uncertainty = args.uncertainty
+MODEL_PATH = args.model
+DEVIDE_IDS = args.cuda
 
+print('batch_size', BATCH_SIZE)
+print('epochs',EPOCHS)
+print('lr',LEARNING_RATE)
+print('seed',RANDOM_SEED)
+print('cuda',DEVIDE_IDS)
+print('uncertainty',Weight_By_Uncertainty)
+print('all_layer',USE_ALL_LAYER)
+print('weights',args.weights)
+print('model',MODEL_PATH)
+print('dropout',args.dropout)
+EPOCHS = 0
 
 torch.cuda.current_device()
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-DEVIDE_IDS = [0,1,2]
 
 
 def set_seed(seed):
@@ -153,27 +160,27 @@ class MyModel(nn.Module):
 
         # is_humour
         self.subtask_1a = nn.Sequential(
-            nn.Dropout(p=0.7),
+            nn.Dropout(p=0.3),
             nn.Linear(self.model.config.hidden_size, 2),
             nn.Softmax(dim=1)
         )
         
         # humor_rating
         self.subtask_1b = nn.Sequential(
-            nn.Dropout(p=0.7),
+            nn.Dropout(p=0.3),
             nn.Linear(self.model.config.hidden_size, 1)
         )
         
         # humor_controversy
         self.subtask_1c = nn.Sequential(
-            nn.Dropout(p=0.7),
+            nn.Dropout(p=0.3),
             nn.Linear(self.model.config.hidden_size, 2),
             nn.Softmax(dim=1)
         )
         
         # offense_rating
         self.subtask_2a = nn.Sequential(
-            nn.Dropout(p=0.7),
+            nn.Dropout(p=0.3),
             nn.Linear(self.model.config.hidden_size, 1)
         )
     
