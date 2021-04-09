@@ -32,7 +32,7 @@ parser.add_argument("--uncertainty", action="store_true",
                     help="weighting with uncertainty (defalut: False)")
 parser.add_argument("--all_layer", action="store_true", 
                     help="use all layer trick (defalut: False)")
-parser.add_argument("--weights", type=int, nargs='+', default=[1, 0, 0], metavar='W',
+parser.add_argument("--weights", type=float, nargs='+', default=[1, 0, 0], metavar='W',
                     help='the loss weight for subtask 1a, 1b, 1c(default: 1, 0, 0)')
 parser.add_argument('--model', type=str, default='roberta-large',
                     help='the name of pre-trained model using in experimrnt (default: roberta-large)')
