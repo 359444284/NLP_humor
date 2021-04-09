@@ -48,7 +48,7 @@ You can add --+[Parameters] + value to set up you own Hyper Parameters.
 - epochs 15
 - lr 2e-06
 - seed 70
-- cuda [0, 1, 2]
+- cuda [1, 2]
 - uncertainty False
 - all_layer True
 - weights [0.4, 0, 0]
