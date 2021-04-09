@@ -17,21 +17,20 @@ import pandas as pd
 import random
 import matplotlib.pyplot as plt
 
-parser = argparse.ArgumentParser(description='Model HyperParameter')
-parser.add_argument('--batch-size', type=int, default=8, metavar='N',
-                    help='input batch size for training (default: 8)')
-parser.add_argument('--epochs', type=int, default=15, metavar='N',
-                    help='number of epochs to train (default: 15)')
-parser.add_argument('--lr', type=float, default=0.01, metavar='LR',
-                    help='learning rate (default: 0.01)')
-parser.add_argument('--momentum', type=float, default=0.5, metavar='M',
-                    help='SGD momentum (default: 0.5)')
-parser.add_argument('--no-cuda', action='store_true', default=False,
-                    help='disables CUDA training')
-parser.add_argument('--seed', type=int, default=1, metavar='S',
-                    help='random seed (default: 1)')
-parser.add_argument('--log-interval', type=int, default=10, metavar='N',
-                    help='how many batches to wait before logging training status')
+# parser = argparse.ArgumentParser(description='Model HyperParameter')
+# parser.add_argument('--batch-size', type=int, default=8, metavar='N',
+#                     help='input batch size for training (default: 8)')
+# parser.add_argument('--epochs', type=int, default=15, metavar='N',
+#                     help='number of epochs to train (default: 15)')
+# parser.add_argument('--lr', type=float, default=2e-6, metavar='LR',
+#                     help='learning rate (default: 0.01)')
+# parser.add_argument('--seed', type=int, default=70, metavar='S',
+#                     help='random seed (default: 70)')
+# parser.add_argument('--cuda', type=int, nargs='+', default=[1,2], metavar='C',
+#                     help='which GPU use to train (default: 0, 1)')
+# parser.add_argument('--weight-srategy', type=int, nargs='+', default=[1,2], metavar='C',
+#                     help='which GPU use to train (default: 0, 1)')
+
 
 RANDOM_SEED = 70
 BATCH_SIZE = 8
@@ -50,7 +49,8 @@ MODEL_PATH = 'roberta-large'
 
 
 torch.cuda.current_device()
-device = torch.device('cuda:1' if torch.cuda.is_available() else 'cpu')
+device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+DEVIDE_IDS = [1,2]
 
 
 def set_seed(seed):
@@ -446,7 +446,7 @@ if __name__ == '__main__':
     model = MyModel(use_all_layer=USE_ALL_LAYER)
 
     if torch.cuda.device_count()>1:
-      model=nn.DataParallel(model,device_ids=[1,2])
+      model=nn.DataParallel(model,device_ids=DEVIDE_IDS)
 
     model = model.to(device)
     input_ids = data['input_ids'].to(device)
@@ -496,6 +496,7 @@ if __name__ == '__main__':
             device,
             len(df_val)
         )
+        print(val_acc_1)
         print(f'Val   loss {val_loss} accuracy_1a {val_acc_1} accuracy_1c {val_acc_2} MSE_1b {val_mse_1} MSE_2a {val_mse_2}')
 
         print()
