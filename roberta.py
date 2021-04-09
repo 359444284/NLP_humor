@@ -5,6 +5,7 @@ some of the structure of my code is adapted from Venelin's blog: https://curious
 Implement by CHAOYU DENG
 """
 import argparse
+import ast
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, Dataset
