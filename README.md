@@ -21,19 +21,25 @@ https://www.python.org/downloads/release/python-368/
 ## Models Used in Essay
 
 Best Model: RoBERTa + MTL + All Layer (loss weighting: 0.4 0 0 0.6)
+
         python model.py
 
 Other Model:
 1. Albert
+
         python model.py --uncertainty False --all_layer False --weights 1 0 0 --drop_out 0.8 0.8 0.8 0.8 --model albert-xxlarge-v2
 
 2. Albert + MTL
+
         python model.py --uncertainty False --all_layer False --weights 0.85 0.075 0 --drop_out 0.8 0.8 0.8 0.8 --model albert-xxlarge-v2
 4. Albert + MTL + All Layer
+
         python model.py --uncertainty False --weights 0.85 0.075 0 --drop_out 0.8 0.8 0.8 0.8 --model albert-xxlarge-v2
 6. RoBERTa
+
         python model.py --uncertainty False --all_layer False --weights 1 0 0 --drop_out 0.6 0 0 0 
 8. RoBERTa + MTL
+
         python model.py --uncertainty False
 
 ## Hyper Parameters And Defluat Value
