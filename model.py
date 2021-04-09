@@ -72,7 +72,7 @@ print('model', MODEL_PATH)
 print('dropout', args.dropout)
 
 torch.cuda.current_device()
-device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
 def set_seed(seed):
