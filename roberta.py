@@ -2,6 +2,7 @@
 this is all the code for my individual project
 some of the structure of my code is adapted from Venelin's blog: https://curiousily.com/posts/sentiment-analysis-with-bert-and-hugging-face-using-pytorch-and-python/
 
+Implement by CHAOYU DENG
 """
 import torch
 import torch.nn as nn
