@@ -18,19 +18,36 @@ https://www.python.org/downloads/release/python-368/
 - train data https://competitions.codalab.org/competitions/27446#participate-get_data (./datas/task1/train/)
 - public data (test data) https://competitions.codalab.org/competitions/27446#participate-get_starting_kit (./public_test.csv)
 
-## Models
+## Models Used in Essay
 
-BEST: RoBERTa + MTL + All Layer
-        python 
+Best Model: RoBERTa + MTL + All Layer (loss weighting: 0.4 0 0 0.6)
+        python model.py
 
+Other Model:
 1. Albert
+        python model.py --uncertainty False --all_layer False --weights 1 0 0 --drop_out 0.8 0.8 0.8 0.8 --model albert-xxlarge-v2
 
-
-   
 2. Albert + MTL
-3. Albert + MTL + All Layer
-4. RoBERTa
-5. RoBERTa + MTL
+        python model.py --uncertainty False --all_layer False --weights 0.85 0.075 0 --drop_out 0.8 0.8 0.8 0.8 --model albert-xxlarge-v2
+4. Albert + MTL + All Layer
+        python model.py --uncertainty False --weights 0.85 0.075 0 --drop_out 0.8 0.8 0.8 0.8 --model albert-xxlarge-v2
+6. RoBERTa
+        python model.py --uncertainty False --all_layer False --weights 1 0 0 --drop_out 0.6 0 0 0 
+8. RoBERTa + MTL
+        python model.py --uncertainty False
+
+## Hyper Parameters And Defluat Value
+You can add --+[Parameters] + value to set up you own Hyper Parameters.
+- batch_size 8
+- epochs 15
+- lr 2e-06
+- seed 70
+- cuda [0, 1, 2]
+- uncertainty True
+- all_layer True
+- weights [0.4, 0, 0]
+- model roberta-large
+- dropout [0.3, 0.3, 0.3, 0.3]
 
 
 
