@@ -4,6 +4,7 @@ some of the structure of my code is adapted from Venelin's blog: https://curious
 
 Implement by CHAOYU DENG
 """
+import argparse
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, Dataset
@@ -16,8 +17,25 @@ import pandas as pd
 import random
 import matplotlib.pyplot as plt
 
+parser = argparse.ArgumentParser(description='Model HyperParameter')
+parser.add_argument('--batch-size', type=int, default=8, metavar='N',
+                    help='input batch size for training (default: 8)')
+parser.add_argument('--epochs', type=int, default=15, metavar='N',
+                    help='number of epochs to train (default: 15)')
+parser.add_argument('--lr', type=float, default=0.01, metavar='LR',
+                    help='learning rate (default: 0.01)')
+parser.add_argument('--momentum', type=float, default=0.5, metavar='M',
+                    help='SGD momentum (default: 0.5)')
+parser.add_argument('--no-cuda', action='store_true', default=False,
+                    help='disables CUDA training')
+parser.add_argument('--seed', type=int, default=1, metavar='S',
+                    help='random seed (default: 1)')
+parser.add_argument('--log-interval', type=int, default=10, metavar='N',
+                    help='how many batches to wait before logging training status')
+
 RANDOM_SEED = 70
 BATCH_SIZE = 8
+LEARNING_RATE = 2e-6
 MAX_LEN = 150
 EPOCHS = 15
 WEIGHT_1A = 1.0
@@ -435,7 +453,7 @@ if __name__ == '__main__':
     attention_mask = data['attention_mask'].to(device)
     
     # initialize optimizer
-    optimizer = AdamW(model.parameters(), lr=2e-6, correct_bias=False)
+    optimizer = AdamW(model.parameters(), lr=LEARNING_RATE, correct_bias=False)
     total_steps = len(train_data_loader) * EPOCHS
 
     scheduler = get_linear_schedule_with_warmup(
