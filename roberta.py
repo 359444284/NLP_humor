@@ -50,7 +50,7 @@ MODEL_PATH = 'roberta-large'
 
 torch.cuda.current_device()
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-DEVIDE_IDS = [1,2]
+DEVIDE_IDS = [0,1,2]
 
 
 def set_seed(seed):
