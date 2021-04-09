@@ -16,7 +16,7 @@ https://www.python.org/downloads/release/python-368/
 
 ## Dataset:
 - train data https://competitions.codalab.org/competitions/27446#participate-get_data (./datas/task1/train/)
-- public data (test data) https://competitions.codalab.org/competitions/27446#participate-get_starting_kit (./)
+- public data (test data) https://competitions.codalab.org/competitions/27446#participate-get_starting_kit (./public_test.csv)
 
 ## Experimental results (Baseline vs CSD-PLUS)
 
@@ -58,11 +58,7 @@ III. DNA
 
 ## References
 
-- Bernardini, G., Chen, H., Conte, A., Grossi, R., Loukides, G., Pisanti, N., ... & Rosone, G. (2019, September). String sanitization: A combinatorial approach. In Joint European Conference on Machine Learning and Knowledge Discovery in Databases (pp. 627-644). Springer, Cham.
+- https://curiousily.com/posts/sentiment-analysis-with-bert-and-hugging-face-using-pytorch-and-python/
 - Bernardini, Giulia, et al. "Hide and Mine in Strings: Hardness and Algorithms." International Conference on Data Mining (ICDM). 2020.
 - Browne, C. B., Powley, E., Whitehouse, D., Lucas, S. M., Cowling, P. I., Rohlfshagen, P., ... & Colton, S. (2012). A survey of monte carlo tree search methods. IEEE Transactions on Computational Intelligence and AI in games, 4(1), 1-43.
 
-## Tools
-
-- Run Tkinter python-based UI: python user_interface.py
-- Run command-line interface: python runner.py <options>
