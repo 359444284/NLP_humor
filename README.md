@@ -15,7 +15,7 @@ https://www.python.org/downloads/release/python-368/
 - Pillow： pip install Pillow==8.0.1
 
 ## Dataset:
-- train data
+- train data https://competitions.codalab.org/competitions/27446#participate-get_data ()
 - public data (test data)
 
 ## Experimental results (Baseline vs CSD-PLUS)
