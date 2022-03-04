@@ -5,64 +5,46 @@ member： CHAOYU DENG， Kang, Yining， Yao, Jinli
 Install python 3.6
 https://www.python.org/downloads/release/python-368/
 
-- Pytorch: pip install torch==1.7.0+cu101 torchvision==0.8.1+cu101 torchaudio===0.7.0-fhttps://download.pytorch.org/whl/torch_stable.html
-- transformers:  pip install transformers==3.5.0
+- Pytorch: pip install torch==1.10.0+cu113 torchvision==0.11.1+cu113 torchaudio===0.10.0-fhttps://download.pytorch.org/whl/torch_stable.html
+- transformers:  pip install transformers==4.16.2
 - sentencepiece:  pip install sentencepiece==0.1.91
 - numpy:  pip install numpy==1.19.4
 - matplotlib:  pip install matplotlib==3.3.3
-- scikit-learn:  pip install scikit-learn==0.23.2
-- pandas:  pip install pandas==1.1.4
+- scikit-learn:  pip install scikit-learn==1.0.1
+- pandas:  pip install pandas==1.3.4
 - Pillow： pip install Pillow==8.0.1
-
-## Dataset:
-- train data https://competitions.codalab.org/competitions/27446#participate-get_data (./datas/task1/train/)
-- public data (test data) https://competitions.codalab.org/competitions/27446#participate-get_starting_kit (./public_test.csv)
+- tqdm: pip install tqdm
 
 ## Models Used in Essay
 
-Best Model: RoBERTa + MTL + All Layer (loss weighting: 0.4 0 0 0.6)
+Defult Model: deberta-v3-large + MTD + lstm_gru lr:5e-6, elr:0.9, batch size:4 loss:DI 0.5 3N seed:12 （val: 0.6630 0.6030 0.6316）
 
-        python model.py
+        python train_model.py
 
 Other Model:
-1. Albert
+1. Bert_lastClsSep lr:3e-6 elr 0.95 batch size 4 loss DI 0.3  + MTD + ems + FGM seed:15 （val: 0.6510 0.6020 0.6265）
 
-        python model.py --uncertainty False --all_layer False --weights 1 0 0 --dropout 0.8 0.8 0.8 0.8 --model albert-xxlarge-v2
+        python train_model.py --model_output cls_spe --lr 3e-6 --dice_fact 0.3 --sample_num 2.5 --seed 15 --epochs 15 --atk FGM --ema True
 
-2. Albert + MTL (loss weighting: 0.85 0.075 0 0.075)
+2. Bert_lastClsSep lr:5e-6 elr 0.9 batch size 4 loss DI 0.3 + MTD + ems + clamp + R-drop seed:15 (val: 0.5764    0.6633    0.6168)
 
-        python model.py --uncertainty False --all_layer False --weights 0.85 0.075 0 --dropout 0.8 0.8 0.8 0.8 --model albert-xxlarge-v2
-4. Albert + MTL + All Layer (loss weighting: 0.85 0.075 0 0.075)
-
-        python model.py --uncertainty False --weights 0.85 0.075 0 --dropout 0.8 0.8 0.8 0.8 --model albert-xxlarge-v2
-6. RoBERTa
-
-        python model.py --uncertainty False --all_layer False --weights 1 0 0 --dropout 0.6 0 0 0 
-8. RoBERTa + MTL (loss weighting: 0.4 0 0 0.6)
-
-        python model.py --all_layer False
+        python train_model.py --model_output cls_spe --lr 5e-6 --dice_fact 0.3 --sample_num 2.5 --seed 15 --ema True --grad_clamp True --r_drop Ture
 
 ## Hyper Parameters And Defluat Value
 You can add --+[Parameters] + value to set up you own Hyper Parameters.
-- batch_size 8
-- epochs 15
-- lr 2e-06
-- seed 70
-- cuda [1, 2]
-- uncertainty False
-- all_layer True
-- weights [0.4, 0, 0]
-- model roberta-large
-- dropout [0.3, 0.3, 0.3, 0.3]
+- batch_size 4
+- epochs 12
+- lr 5e-6
+- seed 12
+- model microsoft/deberta-v3-large
+- model_output lstm_gru
+- dice_fact 0.5
+- atk ''
+- ema False
+- grad_clamp False
+- r_drop False
+- sample_num 3
 
 ## Result
-After you runned the code showing above. it will output three files:
-- result.cvs (the result fro training set)
-- task_result (the result from the task evalutaion step)
-- best_model_state.bin (the best model within this training)
-
-## References
-
-- https://curiousily.com/posts/sentiment-analysis-with-bert-and-hugging-face-using-pytorch-and-python/
-- https://zhuanlan.zhihu.com/p/83609874
+python predict.py  (get the submission file and validation result)
 
