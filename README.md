@@ -28,7 +28,7 @@ Other Model:
 
 2. Bert_lastClsSep lr:5e-6 elr 0.9 batch size 4 loss DI 0.3 + MTD + ems + clamp + R-drop seed:15 (val: 0.5764    0.6633    0.6168)
 
-        python train_model.py --model_output cls_spe --lr 5e-6 --dice_fact 0.3 --sample_num 2.5 --seed 15 --ema True --grad_clamp True --r_drop Ture
+        python train_model.py --model_output cls_spe --lr 5e-6 --dice_fact 0.3 --sample_num 2.5 --seed 15 --ema True --grad_clamp True --r_drop True
 
 ## Hyper Parameters And Defluat Value
 You can add --+[Parameters] + value to set up you own Hyper Parameters.
