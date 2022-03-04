@@ -1,5 +1,5 @@
-# Team：CHAOYUDENG in HaHackathon: Detecting and Rating Humor and Offense
-
+# Team：CHAOYU DENG in SemEval 2022 Task 4: Patronizing and Condescending Language Detection
+member： CHAOYU DENG， Kang, Yining， Yao, Jinli
 
 ## Environment Configuration:
 Install python 3.6
